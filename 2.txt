@@ -1,0 +1,1095 @@
+https://github.com/Krosumlabs/Linux
+
+ Process(P1) - PID:101,PAddress:0x344,Pstate:R+ ->Wait ----<----
+ |								|
+ Process(P2) - PID:102,PAddress:0x555,Pstate:R+.......Exit-->----
+
+
+User Level
+-------------// shell-----
+Kernel Level
+---------------------
+H/w Level 
+
+shell - interface between user & kernel
+------
+
+types of shell
+-----------------
+1.BourneShell (sh) AT&T 
+2.KornShell(ksh) ->ksh93
+3.CShell(csh) ->tcsh ->expect 
+4.Zsh
+5.BourneAgainSHell(bash) - GNU 
+
+How to find out my current working shell ?
+  ps 
+  (or)
+  echo $0 <== special variable
+
+How to switch from current shell to anothershell(sub-shell)?
+
+root@host~]# echo $0
+bash
+root@host~]# sh {Enter}
+
+
+----
+
+[vsk@student ~]$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+ 3291 pts/1    00:00:00 ps
+[vsk@student ~]$ echo $0
+-bash
+[vsk@student ~]$ sh
+sh-4.2$ echo $0
+sh
+sh-4.2$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+ 3379 pts/1    00:00:00 sh
+ 3383 pts/1    00:00:00 ps
+sh-4.2$ ksh
+$ echo $0
+ksh
+$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+ 3379 pts/1    00:00:00 sh
+ 3390 pts/1    00:00:00 ksh
+ 3398 pts/1    00:00:00 ps
+$ ps -f
+UID        PID  PPID  C STIME TTY          TIME CMD
+vsk       2016  2015  0 08:54 pts/1    00:00:00 -bash
+vsk       3379  2016  0 09:20 pts/1    00:00:00 sh
+vsk       3390  3379  0 09:20 pts/1    00:00:00 ksh
+vsk       3588  3390  0 09:24 pts/1    00:00:00 ps -f
+$ date
+Tue Jan 17 09:25:30 IST 2023
+$ date;pwd;sleep 3600;ps;uname
+Tue Jan 17 09:27:23 IST 2023
+/home/vsk
+^C$
+$
+$ sleep 30 &
+[1]     3810
+$ ps -f
+UID        PID  PPID  C STIME TTY          TIME CMD
+vsk       2016  2015  0 08:54 pts/1    00:00:00 -bash
+vsk       3379  2016  0 09:20 pts/1    00:00:00 sh
+vsk       3390  3379  0 09:20 pts/1    00:00:00 ksh
+vsk       3810  3390  0 09:29 pts/1    00:00:00 ksh
+vsk       3820  3390  0 09:29 pts/1    00:00:00 ps -f
+$
+$ jobs
+[1] +  Running                 sleep 30 &
+$
+[1] +  Done                    sleep 30 &
+$
+$ exit
+sh-4.2$ ps -f
+UID        PID  PPID  C STIME TTY          TIME CMD
+vsk       2016  2015  0 08:54 pts/1    00:00:00 -bash
+vsk       3379  2016  0 09:20 pts/1    00:00:00 sh
+vsk       3937  3379  0 09:31 pts/1    00:00:00 ps -f
+sh-4.2$ exit
+exit
+[vsk@student ~]$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+ 3946 pts/1    00:00:00 ps
+----
+
+ Linux Boot process
+ ------------------
+ OFF =>Switch ON PC =>PowerSelfTest(POST) =>Master Boot Record(MBR) =>BootLoader(grub)
+								      -----------
+									 |
+ 									Load the Kernel
+									 |
+									systemD(PID:1)
+									 |
+								 system process(?)
+									 |
+							 getty(?)//Login:__ password:____
+								|
+							   Shell(CLI) Vs Desktop(GUI)
+								|	   |
+							User I/O  (user process)
+	
+----------------------------------------------------------------------------------------- 
+Test your current working shell name
+|
+ping 127.0.0.1 {enter}
+
+press Ctrl+C (Exit Signal)  Vs Ctrl+Z (Stop Signal)
+|
+ping 127.0.0.1 >ping.log & 
+|
+ps 
+ps -f 
+wc -l ping.log
+
+jobs
+kill -l 
+kill -9 <PID>
+
+
+To transfer process from background to foreground
+
+ fg %<eventID> {Enter}
+
+[vsk@student ~]$ ping 127.0.0.1
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.052 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.078 ms
+64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.043 ms
+^Z
+[1]+  Stopped                 ping 127.0.0.1
+[vsk@student ~]$ jobs
+[1]+  Stopped                 ping 127.0.0.1
+[vsk@student ~]$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+ 5092 pts/1    00:00:00 ping
+ 5102 pts/1    00:00:00 ps
+[vsk@student ~]$ fg %1 <========
+ping 127.0.0.1
+64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.044 ms
+64 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=0.160 ms
+64 bytes from 127.0.0.1: icmp_seq=6 ttl=64 time=0.077 ms
+^C <== Exit
+--- 127.0.0.1 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 71029ms
+rtt min/avg/max/mdev = 0.043/0.075/0.160/0.041 ms
+[vsk@student ~]$
+----------------------------------------------------------------------------------------
+
+host01
+-------
+userA@host01~]$ uname
+Linux
+userA@host01~]$ echo $0
+bash
+userA@host01~]$ vi p1.sh {enter}
+echo "One"
+...
+...
+echo "End of the script"
+:wq
+userA@host01~]$ chmod a+x p1.sh 
+userA@host01~]$ ./p1.sh {Enter}
+One
+...//success
+End of the script
+userA@host01~]$ ----------------------->  userB@host02~]$ uname
+					  Aix
+					  userB@host02~]$ echo $0
+					  csh
+					  userB@host02~]$ ./p1.sh {Enter}
+					  One
+					  ...//failed - Error
+					  End of the script
+					  userB@host02~]$ 
+
+userA@host01~]$ vi p1.sh {Enter}
+#!/bin/bash
+...
+...
+...
+:wq
+userA@host01~]$ chmod a+x p1.sh
+userA@host01~]$ ------------------------->userB@host02~]$ ./p1.sh <== by csh
+						|
+						csh ->bash -->execute the script
+						      subshell .........
+
+_________________________________________________________________________________________
+
+shellscript supports comment lines 
+# single line comment
+
+<<Abc 
+....
+....  multiline comment 
+....
+....
+Abc
+--------------------------------------------------------------------------------------
+Shell Script(program)
+      ---------------
+	->Variables
+	->Operators
+	->Conditional 
+	->Looping statements
+	->Functions
+------------------------------------------------------------------------------------
+variable - placeholder - holding a value
+--------
+  1. User defined variable 
+  2. Shell variable (or) exported variable
+  3. Commandline args 
+  4. Array 
+
+  1. User defined variable 
+  -------------------------
+   Syntax:-
+   ---------
+   variableName=value
+
+   rule 1: variable name starts with a-zA-Z_ not digits
+   |
+   rule 2: variable name not allows space,special chars 
+   |
+   rule 3: there is no space in = LHS,RHS
+ 
+   fstype=xfs
+   findex=560
+   fsize="120 GB"
+   futil=98.42
+   v5=5.22
+   fname="/etc/passwd"
+   cmd=date 
+   cmd_result=`date` 
+   count=`ps -e|wc -l`
+  
+   $variable (or) ${variable}
+
+  Write a shell script
+  initialize following details to individual variable
+  display initialize variable value to monitor.
+  //empname,empid,empdept,today MM/DD/YY format 
+
+  ename="Mr.Raj"
+  eid=1345
+  edept="sales"
+  today=`date +%D`
+
+  echo "TODAY:${today}"
+  echo "----------------------------------------------"
+  echo "Emp name is:${ename}"
+  echo "${ename} id is:${eid}"
+  echo "${ename} working department is:${edept}"
+  echo "----------------------------------------------"
+
+----------------------------------------------------------------------------------------
+ multiline string
+ ----------------
+ echo "data{Enter}
+ next line{Enter}
+ next line{Enter}
+ ...
+ end of the line"
+
+ # Refer: p2.sh script
+---------------------------------------------------------------------------------------
+partition name
+file system type
+mount point
+disk size
+
+part_name="/dev/sda1"
+fstype="xfs"
+fmount="/D1"
+fdisk="150M"
+
+echo "About ${part_name} partition details:-
+--------------------------------------------------------------
+Partition name:${part_name}   File system type:${fstype}
+----------------------------------------------------------------
+mount point directory:${fmount} ${part_name} disk size is:${fdisk}
+--------------------------------------------------------------------"
+--------------------------------------------------------------------------------------
+					
+Keyboard(<STDIN>)-----<------Shell----------------echo------->------Monitor(STDOUT)
+		    read 
+
+read UDV
+
+read -p "prompt message"<space>UDV
+	|----STDOUT----|       <STDIN>
+
+-------------------------------------------------------------------------------------
+
+read -p "Enter a partition name:" part_name
+read -p "Enter ${part_name} file system type:" fstype
+read -p "Enter ${part_name} mount point directory:" fmount
+read -p "Enter ${part_name} disk usage:" fdisk
+
+echo "About ${part_name} partition details:-
+--------------------------------------------------------------
+Partition name:${part_name}   File system type:${fstype}
+----------------------------------------------------------------
+mount point directory:${fmount} ${part_name} disk size is:${fdisk}
+--------------------------------------------------------------------"
+[vsk@student ~]$
+---------------------------------------------------------------------------------------
+shell variable
+---------------
+  |->pre-defined variables
+
+  env {Enter}
+  ----
+ echo $SHELL
+ echo $PATH
+ echo $HOME
+ echo $PWD
+ Global access - we can run this variable directly inside the script
+ =============
+ How to convert UDV ->Shell variable?
+		............
+ 
+  export command
+  ------
+  export UDV=Value
+	(or)
+  UDV=Value
+  export UDV
+
+ [vsk@student ~]$ myapp="testApp"
+[vsk@student ~]$ echo $myapp
+testApp
+[vsk@student ~]$ sh
+sh-4.2$ echo $myapp
+
+sh-4.2$ exit
+exit
+[vsk@student ~]$ export myapp
+[vsk@student ~]$ sh
+sh-4.2$ echo $myapp
+testApp
+sh-4.2$ exit
+exit
+[vsk@student ~]$ env|grep -i myapp
+myapp=testApp
+[vsk@student ~]$ export config="/etc/network.conf"
+[vsk@student ~]$ env|grep config
+config=/etc/network.conf
+[vsk@student ~]$
+
+[vsk@student ~]$ echo $fstype
+
+[vsk@student ~]$ env|grep fstype
+[vsk@student ~]$
+[vsk@student ~]$ export fstype="xfs"
+[vsk@student ~]$ env|grep fstype
+fstype=xfs
+[vsk@student ~]$ sh
+sh-4.2$ echo $fstype
+xfs
+sh-4.2$ exit
+exit
+[vsk@student ~]$ unset fstype
+[vsk@student ~]$ env|grep fstype
+[vsk@student ~]$
+[vsk@student ~]$ 
+
+ read UDV
+ export UDV=value
+ unset UDV
+-------------------------------------------------------------------------------
+Commandline arguments
+---------------------
+ |->Runtime inputs  ->  ./p1.sh input1 input2 input3 input4 {Enter}
+				------ ------ ------ -------
+				arg1	arg2   arg3  arg4
+
+file:ab.sh					file: sab.sh
+-----------					--------------
+read -p "Enter a filename:" fname		ls -l ${1} >/var/log/r1.log
+ls -l $fname >/var/log/result.log		--------------
+----------					chmod a+x sab.sh
+chmod a+x ab.sh					root@host~]# ./sab.sh /etc/passwd {Enter}
+root@host~]# ./ab.sh {Enter}					      ^^^^^^^^^^^
+Enter a filename:______ <== execution input			      runtimeInput
+
+$1 $2 $3 $4 $5 $6 $7 $8 $9
+	
+	${n}
+	  |___nth argument
+
+echo $1 same as ${1}
+echo $9 same as ${9}
+10th argument => ${10}
+11th argument => ${11}
+
+$# (or) ${#} - Total no.of arguments
+
+$@ (or) ${@}
+$* (or) ${*}
+------------------//list of all the arguments
+
+fname=$1 # we can initialize commandline args value to UDV
+ls -l ${fname}
+
+./p1.sh /etc/passwd {enter}
+	----$1-----
+======================================================================================
+Array
+-----
+  |->Variable - more than one value(different type)
+
+ Syntax:-
+ -------
+ Arrayname=(<list of items>)
+
+ //declare -a Arrayname=(<list of items>)
+
+ v=`command`	Vs  a=(`command`)
+ ___________	    ______________
+
+
+  a=(D1 D2 D3 D4 D5)
+     |  |  |  |   |
+     0  1  2  3   4 <== index
+
+ How to fetch/get single value from an array?
+    ${arrayname[index]}
+
+ echo ${a[1]} ->D2
+ echo ${a[0]} ->D1
+
+ echo ${a[6]} ->Empty
+	  |
+	 not exists
+
+
+[vsk@student ~]$ ps -e|wc -l
+95
+[vsk@student ~]$ c=`ps -e|wc -l`
+[vsk@student ~]$
+[vsk@student ~]$ a=(`ps`)
+[vsk@student ~]$ ps
+  PID TTY          TIME CMD
+ 2016 pts/1    00:00:00 bash
+12017 pts/1    00:00:00 ps
+[vsk@student ~]$
+[vsk@student ~]$ s="Linux winx sunos minix qnx"
+[vsk@student ~]$ echo ${s}
+Linux winx sunos minix qnx
+[vsk@student ~]$
+[vsk@student ~]$ a=(Linux winx sunos minix qnx)
+[vsk@student ~]$ echo ${a[0]}
+Linux
+[vsk@student ~]$ echo ${a[1]}
+winx
+[vsk@student ~]$ echo ${a[2]}
+sunos
+[vsk@student ~]$ fsinfo=(/dev/sda1 xfs 150GB /D1)
+[vsk@student ~]$ echo ${fsinfo[0]}
+/dev/sda1
+[vsk@student ~]$ echo "partition name is:${fsinfo[0]}"
+partition name is:/dev/sda1
+[vsk@student ~]$
+
+ array is mutable(changeable)
+
+ arrayname[Old_index]=updated_Value
+ --------- =========  --------------
+
+  a=(OL5 OL6 OL7)
+  
+  update OL6 ->RHL6
+
+  echo ${a[1]} ->OL6
+
+  a[1]=RHL6 # modification
+
+  echo ${a[1]} ->RHL6 
+
+  echo ${a[5]} ->empty 
+  
+  a[5]=RHL8
+  echo ${a[5]} ->RHL8
+
+ To print/list entire array elements 
+ 
+  ${arrayname[@]} (or) ${arrayname[*]}
+  
+  To print no.of items -> ${#arrayname[@]} (or) ${#arrayname[*]}
+  
+[vsk@student ~]$ fsinfo=(/dev/sda1 xfs 150GB /D1)
+[vsk@student ~]$ echo ${fsinfo[0]}
+/dev/sda1
+[vsk@student ~]$ echo "partition name is:${fsinfo[0]}"
+partition name is:/dev/sda1
+[vsk@student ~]$ echo ${fsinfo[@]}
+/dev/sda1 xfs 150GB /D1
+[vsk@student ~]$ echo ${#fsinfo[@]}
+4
+[vsk@student ~]$ fsinfo[1]="ext4"
+[vsk@student ~]$ echo ${fsinfo[@]}
+/dev/sda1 ext4 150GB /D1
+[vsk@student ~]$
+--------------------------------------------------------------------------------
+
+[vsk@student ~]$
+[vsk@student ~]$ cat -n p8.sh
+     1  A=($@)
+     2  echo "${A[@]}"  # same as $@
+     3  echo "${#A[@]}" # same as $#
+     4
+[vsk@student ~]$ ./p8.sh D1 D2 D3 D4 D5
+D1 D2 D3 D4 D5
+5
+[vsk@student ~]$ read os
+winx
+[vsk@student ~]$ read os
+winx linux qnx minix
+[vsk@student ~]$ echo ${os[1]}
+
+[vsk@student ~]$ echo ${os}
+winx linux qnx minix
+[vsk@student ~]$
+[vsk@student ~]$ read -a os
+winx linux qnx minix
+[vsk@student ~]$ echo ${os[1]}
+linux
+[vsk@student ~]$ echo ${os[2]}
+qnx
+[vsk@student ~]$ echo ${os[0]}
+winx
+[vsk@student ~]$
+---------------------------------------------------------------------------------
+[vsk@student ~]$ a=() # empty array
+[vsk@student ~]$ echo ${#a[@]}
+0
+[vsk@student ~]$ v=`uname -r`
+[vsk@student ~]$
+[vsk@student ~]$ a[0]=$v
+[vsk@student ~]$ a[1]=45.53
+[vsk@student ~]$ echo ${#a[@]}
+2
+[vsk@student ~]$ echo ${a[@]}
+4.1.12-94.3.9.el7uek.x86_64 45.53
+[vsk@student ~]$
+[vsk@student ~]$ echo ${a[0]}
+4.1.12-94.3.9.el7uek.x86_64
+[vsk@student ~]$ echo ${a[1]}
+45.53
+[vsk@student ~]$  
+----------------------------------------------------------------------------------      
+ ./pt.sh date ps pwd hostname uname 	 
+  
+  execute each command - initialize command result to UDV 
+  create an new array
+  add(insert) existing UDVs to Array
+  |
+  using array variable - display command results to monitor
+--------------------------------------------------
+  r1=`$1`
+  r2=`$2`
+  r3=`$3`
+  r4=`$4`
+  r5=`$5`
+  cmd_results=() # empty array
+  
+  cmd_results[0]=$r1
+  cmd_results[1]=$r2
+  cmd_results[2]=$r3
+  cmd_results[3]=$r4
+  cmd_results[4]=$r5
+  echo "Command results:-"
+  echo "-------------------------"
+  echo "${cmd_results[@]}"
+  ------------------------------------------
+#########################################################################################
+echo 10 + 20
+
+1.expr command
+expr value<space>OPERATOR<space>value
+expr 10 + 20  
+ 
+expr 10 - 4
+expr 10 / 2
+expr 10 % 3
+expr 10 \* 3
+
+os=`uname`
+total=`expr 10 + 20`
+va=56
+vb=23
+r=`expr $va + $vb`
+|
+|__echo "total value: $r"
+_____________________________________________________________________________
+2. compound style
+((expression))
+
+echo $((10+20))
+echo $((10*20))
+echo $((10*     20)) //valid
+
+va=90
+vb=12
+echo $((va+vb))
+
+//supports ++/--
+
+n=5
+((n++))
+echo $n
+  Vs
+n=5
+n=`expr $n + 1`
+echo $n
+----------------------------------------------------------------------------------------
+Q1. Write a shell script
+    - read a disk partition name from <STDIN>
+    - read a partition size from <STDIN>
+    - read another disk partition & size from <STDIN>    
+    |
+    - calculate sum of two disk partition size
+    |
+    - display - each partition name  and individual size
+		sum of disks partition	
+Expected Result
+----------------
+Enter a partition: /dev/sda1
+Enter /dev/sda1 partition Size: 150
+
+Enter a partition: /dev/sda2
+Enter /dev/sda2 partition Size: 250
+Partition  /dev/sda1	size is: 150 GB
+Partition  /dev/sda2	size is: 250 GB
+---------------------------------------
+	   Total disk size is: 400 GB
+---------------------------------------
+read -p "Enter a partition name:" p1
+read -p "Enter $p1 partition Size:" s1
+
+read -p "Enter a partition name:" p2
+read -p "Enter $p2 partition Size:" s2
+
+total=`expr $s1 + $s2` # total=$((s1+s2))
+
+echo "
+Partition ${p1}   Size is:${s1} GB
+Partition ${p2}   Size is:${s2} GB
+----------------------------------------
+         Total disk size is:${total} GB
+----------------------------------------"
+
+---------------------------------------------------------------------------
+Q2. Modify the below code in commandline args
+	
+     count=3
+     IP="127.0.0.1"
+     fname="r1.log"
+     ping -c $count $IP >$fname
+
+
+    ping -c $1 $2 >$3
+    ./pt.sh 3 127.0.0.1 r1.log
+---------------------------------------------------------------------------
+     
+[vsk@student ~]$ cat p11.sh
+ping -c $1 $2 >$3
+[vsk@student ~]$
+[vsk@student ~]$ ./p11.sh 3 127.0.0.1 r1.log
+[vsk@student ~]$ cat r1.log
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.040 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.047 ms
+64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.047 ms
+
+--- 127.0.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 1999ms
+rtt min/avg/max/mdev = 0.040/0.044/0.047/0.008 ms
+[vsk@student ~]$
+--------------------------------------------------------------------------------------
+echo $0  <== in Commandline display working shell name (or) active shellname
+     ---
+      |<--- inside the shellscript(file.sh) - display filename.	
+
+echo $$ <== in Commandline display working shell PID
+     ---
+      |<=== execution of the script PID
+
+echo $PPID <== parent process ID <== in Commandline shell parent PID
+     -----
+       |<== inside the shellscript(file.sh) execution of the script parentPID
+					    ---------------------------------
+						|->shell PID
+  shell is a parent of user created process 
+  
+----------------------------------------------------------------------------------
+  $? <=== Last command operation exit code
+				____________
+				|->0 <command operation is success>
+				|->1 2 3 ..126 127 //non-zero command execution is failed
+
+ commandA
+ commandB
+ echo $? <=== commandB exit status 
+
+
+[vsk@student ~]$ cat emp.csv
+101,raj,sales,pune,1000
+102,leo,prod,bglore,2000
+124,anu,HR,noida,1234
+455,xerox,hr,hyd,2400
+452,raj,prod,mumbai,1200
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+592,bibu,Hr,pune,2040
+[vsk@student ~]$ echo $?
+0
+[vsk@student ~]$ cat ee.log
+cat: ee.log: No such file or directory
+[vsk@student ~]$ echo $?
+1
+[vsk@student ~]$ ./emp.csv
+-bash: ./emp.csv: Permission denied
+[vsk@student ~]$ echo $?
+126
+[vsk@student ~]$ asdfghj
+-bash: asdfghj: command not found
+[vsk@student ~]$ echo $?
+127
+[vsk@student ~]$ grep sales emp.csv
+101,raj,sales,pune,1000
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+[vsk@student ~]$ echo $?
+0
+[vsk@student ~]$ grep BDA emp.csv
+[vsk@student ~]$ echo $?
+1
+[vsk@student ~]$ cat /etc/shadow
+cat: /etc/shadow: Permission denied
+[vsk@student ~]$ echo $?
+1
+[vsk@student ~]$
+---------------------------------------------------------------------------------------
+relational operators
+---------------------
+	|
+ --------------
+ |	       |
+string	       number(int)
+==		-eq -ne -lt -le -gt -ge 
+!=			 
+
+ "AB" == "AB"  
+ 10 -eq 10 
+
+ `ps -e|wc -l`  -gt 100 
+
+test operator
+------------ 
+[  ] <==
+
+[<space>Value<space>OPERATOR<space>Value<space>]
+test 10 -eq 10  same as [ 10 -eq 10 ]
+----                     
+
+[ 10 -eq 10 ]
+
+
+[vsk@student ~]$ [ 10 -eq 10 ]
+[vsk@student ~]$
+[vsk@student ~]$ [ 10 -eq 20 ]
+[vsk@student ~]$
+[vsk@student ~]$ test 10 -eq 10
+[vsk@student ~]$
+[vsk@student ~]$ [ 10 -eq 10 ]
+[vsk@student ~]$ echo $?
+0
+[vsk@student ~]$ [ 10 -eq 10 ];echo $?
+0
+[vsk@student ~]$ [ 10 -eq 11 ];echo $?
+1
+[vsk@student ~]$ [ "abc" == "abc" ];echo $?
+0
+[vsk@student ~]$ [ "`whoami`" == "root" ];echo $?
+1
+[vsk@student ~]$ [ "`whoami`" != "root" ];echo $?
+0
+[vsk@student ~]$ ps -e|wc -l
+95
+[vsk@student ~]$ [ `ps -e|wc -l` -gt 100 ];echo $?
+1
+[vsk@student ~]$ [ `ps -e|wc -l` -lt 100 ];echo $?
+0
+[vsk@student ~]$
+------------------------------------------------------------------------------------
+Conditional statement
+--------------------
+->do command validation
+->testing /validation
+|
+Conditional statement - Code block - execute only onetime
+^^^^^^^^^^^^^^^^^^^^^^
+if 
+ |->if only
+ |->if..else
+ |->if..elif..elif..elif..else	
+case
+
+if only
+Syntax:-
+--------
+if<space>[ condition ]
+then
+	Codeblock(True)
+fi 
+
+if..else
+-----------
+if<space>[ condition ]
+then
+	Codeblock(True)
+else
+        False block
+fi 
+
+Write a shell script
+- test your login is root user or not
+- 		     ---------    ====
+			|	     |-->display message - sorry your not root user.
+			cat /etc/issue
+
+if [ `whoami` == "root" ]
+then
+	cat /etc/issue
+else
+	echo "Sorry `whoami` your not a root user"
+fi
+
+
+if [ `whoami` == "root" ];then
+	cat /etc/issue
+else
+	echo "Sorry `whoami` your not a root user"
+fi
+---------------------------------------------------------------------------
+Syntax:-
+--------
+if<space>[<space>Condition1<space>]
+then	
+	True block1
+elif<space>[<space>Condition2<space>]
+then
+	True block2
+elif<space>[<space>Condition3<space>]
+then
+	True block3
+..
+elif<space>[<space>ConditionN<space>]
+then
+	True blockN
+else
+	False block
+fi
+
+Write a shell script
+read a shell name from <STDIN>
+test input shell name is bash -> initialize a profile file "bashrc"
+test input shell name is ksh  -> initialize a profile file "kshrc"
+test input shell name is csh  -> initialize a profile file "cshrc"
+|
+default shell /bin/nologin  -> profile file /etc/profile
+	      ------------		    -------------
+display shell name & profile filename 
+
+read -p "Enter a shell name:" sh_var
+
+if [ "$sh_var" == "bash" ];then
+	fname="bashrc"
+elif [ "$sh_var" == "ksh" ];then
+	fname="kshrc"
+elif [ "$sh_var" == "csh" ];then
+	fname="cshrc"
+else
+	echo "Sorry your input shell:$sh_var is not matched"
+	echo "the default shell initialization is:"
+	sh_var="/bin/nologin"
+	fname="/etc/profile"
+fi
+echo "Shell name is:$sh_var   profile file name is:$fname"
+
+[vsk@student ~]$ bash -x p18.sh
++ read -p 'Enter a shell name:' sh_var
+Enter a shell name:csh
++ '[' csh == bash ']'
++ '[' csh == ksh ']'
++ '[' csh == csh ']'
++ fname=cshrc
++ echo 'Shell name is:csh   profile file name is:cshrc'
+Shell name is:csh   profile file name is:cshrc
+[vsk@student ~]$ bash -x p18.sh
++ read -p 'Enter a shell name:' sh_var
+Enter a shell name:zsh
++ '[' zsh == bash ']'
++ '[' zsh == ksh ']'
++ '[' zsh == csh ']'
++ echo 'Sorry your input shell:zsh is not matched'
+Sorry your input shell:zsh is not matched
++ echo 'the default shell initialization is:'
+the default shell initialization is:
++ sh_var=/bin/nologin
++ fname=/etc/profile
++ echo 'Shell name is:/bin/nologin   profile file name is:/etc/profile'
+Shell name is:/bin/nologin   profile file name is:/etc/profile
+_________________________________________________________________________________________
+case statement
+--------------
+ |->Conditional statement
+ Syntax:-
+ --------
+ case value in
+ pattern1)  pattern1 operation 
+	    ;;
+ pattern2)  pattern2 operation 
+	    ;;
+ ..
+ patternN)  patternN operation
+	    ;;
+ *)    default operation
+ esac
+ -----------------------------------------------------------
+
+ read -p "Enter a shell name:" sh_var
+ case $sh_var in
+ bash) echo "matched shell name is:${sh_var}" 
+       fname="bashrc"
+       ;;
+ ksh) echo "matched shell name is:${sh_var}"
+      fname="kshrc"
+      ;;
+ csh) echo "matched shell name is:${sh_var}"
+      fname="cshrc"
+      ;;
+  *)  echo "Sorry your input shell: $sh_var is not matched"
+      sh_var="/bin/nologin"
+      fname="/etc/profile"
+ esac 
+ echo "Shell name is:${sh_var} profile filename:${fname}"
+-------------------------------------------------------------------------------------
+Logical operators
+--------------------
+Logical AND   -a
+Logical OR    -o
+Logical NOT    !
+
+if [  $SHELL == "/bin/bash" -a "`uname`" == "Linux" ]
+then
+	...
+else
+	...
+fi
+
+if [  $SHELL == "/bin/bash" -o $SHELL == "/bin/ksh" ]
+then
+	...
+else
+	...
+fi
+
+if ! [ .... ]
+then
+	...
+fi
+-------------------------------------------------------------------------------
+ -a  &&
+ -o  ||
+  	
+ [[ condition ]] <== expanded test operator
+
+[ 150 -gt 100 -a "root" == "root" -a "/bin/bash" == "/bin/bash" -a 560 -lt 600 ]
+  ----->------  ------->----------    -------->--------------     ----->-------
+
+[ 150 -gt 100 -a "root" == "root" -a "/bin/bash" == "/bin/bash" -a 560 -lt 600 ]
+  ===========    ===============      ==========     =========     ===========
+       C1             C2                  C3		C4		C5
+
+
+[ 150 -gt 100 -a "root" == "root" ]  -a [ "/bin/bash" == "/bin/bash" -a 560 -lt 600 ] //Error 
+
+if [[ 150 -gt 100 && "root" == "root" ]] && [[ "/bin/bash" == "/bin/bash" && 560 -lt 600 ]]
+then
+	....
+else
+	....
+fi
+
+[[ 150 -gt 100 && "root" == "root" ]] && [[ "/bin/bash" == "/bin/bash" && 560 -lt 600 ]]
+
+---------------------------------------------------------------------------------------File Test operators
+---------------------
+ |__File types & file mode( read   write  execute)
+    ----------		     -r     -w      -x
+ 1.Reg.file    -f
+ 2.Directory   -d
+ 3.Link file   -l
+ 4.Character type -c
+ 5.Block type	-b
+ 6.namedPIPE (or) FIFO -p
+ 7.Socket file -S
+
+ Test input file is reg.file or not ?
+ 
+ test <fileTestOperator> inputFile  (or)  [ <fileTestOperator>  inputFile ]
+ 
+ test -f filename	(or)   [ -f filename ]
+
+ if [ -f $fname ]
+ then
+	cat $fname
+	cp $fname newfile
+	mv $fname fx
+	grep <pattern> $fname
+	...
+	...
+ else
+	....
+ fi
+
+ Write a shellscript
+ - read a directory name from <STDIN>
+ |
+ - test input directory is existing or not?
+ |			   ========    _____________ mkdir <directory>
+ - 			ls -ld <directoryFile>        |
+						      |
+						     $? -eq 0 => ls -ld <dirFile>
+ read -p "Enter a directory name:" dname
+ if [ -d $dname ];then
+	echo "Directory $dname is already exists"
+	ls -ld $dname
+ else
+	echo "Sorry directory $dname is not exists"
+	mkdir $dname
+	if [ $? -eq 0 ];then
+		echo "Directory $dname is created"
+		ls -ld $dname
+	else
+		echo "Directory creation is failed"
+	fi
+ fi
+
+ -e <filename>  <=== file is existing or not
+
+[vsk@student ~]$ [ -e /etc ];echo $?
+0
+[vsk@student ~]$ [ -e /etc/passwd ];echo $?
+0
+[vsk@student ~]$ [ -e /dev/null ];echo $?
+0
+[vsk@student ~]$ file /dev/null
+/dev/null: character special
+[vsk@student ~]$
+[vsk@student ~]$ file /etc/passwd
+/etc/passwd: ASCII text
+[vsk@student ~]$
+[vsk@student ~]$ file /etc
+/etc: directory
+[vsk@student ~]$ cat ppp.log
+cat: ppp.log: No such file or directory
+[vsk@student ~]$
+[vsk@student ~]$ [ -e ppp.log ];echo $?
+1
+[vsk@student ~]$
+________________________________________________________________________________________
