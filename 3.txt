@@ -1,0 +1,374 @@
+Looping statements
+------------------
+ -> Code block - execute more than one time
+ |
+ -> 1. Conditional style loop - based on the bool value
+ |
+ -> 2. Collection style loop - based on the no.of items
+ |
+ -> 1. Conditional style loop - based on the bool value
+    ==========================
+     rule 1: initialization	   i=0                i=15
+     rule 2: test (or) condition   $i -lt 5	      $i -gt 10
+     rule 3: arithmetic		   i=`expr $i + 1`    i=`expr $i - 1` 
+
+     while - keyword 
+
+     initialization			i=0
+     while<space>[ condition ]		while [ $i -lt 5 ]
+     do					do	
+	  Code block			    echo "i value :$i"
+     done				    date
+					    sleep 2
+     # while do done - keywords   	    i=`expr $i + 1`
+ 					done
+
+c=0
+while [ $c -lt 3 ]
+do
+  read -p "Enter your login name:" name
+ 
+  if [ $name == "admin" ];then
+	echo "Login is success"
+  else
+	echo "Try-Again"
+  fi
+  c=`expr $c + 1`
+done
+
+break - exit from loop 
+ 
+--------------------------------------------------------------------
+
+[vsk@student ~]$ # Write a shell script
+[vsk@student ~]$ # initialize a pin number( ex: pin=1234)
+[vsk@student ~]$ # using while loop - max limit is 3
+[vsk@student ~]$ #      - read a pin Number from <STDIN>
+[vsk@student ~]$ #      - test input pin with existing pin
+[vsk@student ~]$ #      - if input pin is matched with existing pin
+[vsk@student ~]$ #              - display success message to monitor
+[vsk@student ~]$ #              - display pin count (ex: pin is matched at 1)
+[vsk@student ~]$ #      - if all 3 inputs are failed - pin is blocked.
+[vsk@student ~]$ # 
+[vsk@student ~]$
+-------------------------------------------------------------
+pin=1234
+c=0
+while [ $c -lt 3 ]
+do
+	c=`expr $c + 1`
+	read -p "Enter a pin Number:" p
+	if [ $p -eq $pin ];then
+		echo "Success pin is matched at $c"
+		break
+	fi
+done
+if [ $pin -ne $p ];then
+	echo "Sorry your pin is blocked"
+fi
+----------------------------------------------------------------------------------
+while<space>:
+do
+	always active
+done
+
+(or)
+while true
+do
+	always active
+done
+------------------------------//
+
+while :
+do
+	date 
+	sleep 2
+done
+
+echo "*********** SYSTEM INFO *****************
+
+1.  Kernel info					uname -a
+2.  Process					ps 
+3.  date & time					date 
+4.  Login name and hostname			...
+5.  Quit "					break
+read -p "Enter your choice:" choice
+
+# Refer: p26.sh 
+-----------------------------------------------------------------------------
+2. Collection style loop
+---------------------------
+  for - keyword
+
+ Syntax:-
+ ---------
+ for  variable in <list of items>
+ do
+	Code block
+ done
+ 
+ # for in do done - keywords 
+ # --------------
+ # variable - UDV
+
+ touch p1.txt
+ touch p2.txt
+ touch p3.txt
+-----------------//commandline
+ using for loop - iterate list of .txt files (ls *.txt)
+
+ 1. p1.txt
+ 2. p2.txt
+ 3. p3.txt
+ ---------------------------
+ Total no.of txt files: 3
+ ---------------------------
+ # Refer: p27.sh 
+
+ for v in `awk -F, '{print $2}' emp.csv `
+> do
+> echo "Emp name is:$v"
+> echo # empty line
+> done
+-------------------------------------------------------------------------------
+until loop
+-----
+ |->opp.of while 
+
+ while ! [ condition ]	 ======>  until [ condition ]
+ do				  do
+	...				....
+ done				  done
+
+select loop
+------
+ |->menu driven programming 
+---------------------------------------------------------------------------------
+Function
+---------
+  -> Code block (or) set of commands (or) sub-script
+  |
+  -> avoid code duplication 
+  |
+  -> function definition //action block
+  -> function Call - to invoke a definition
+ Syntax:-
+ ----------
+ function functionName()
+ {
+     Code block
+ }
+ # function - keyword 
+
+ functionName # simple function call
+
+_______________________________________________________________________________________ _
+Modify pin example
+
+ -> read a pin number from <STDIN>
+ |
+ -> test your input with existing pin
+		- print/display success message and count value 
+				--------------------------------
+		->update user input pin entry details to pin_history.log
+			 --------------+ date
+		ex: Success - input pin entry time is:`date` //write to FILE
+		|
+		Failed - input pin entry time is:`date` //write to FILE (append)
+		|
+		blocked message //write to FILE
+  ----------
+  |
+ pin_test(){
+
+ }
+ pin_test <pinNumber> # functionCall with argument
+           ---------
+	     |__ input from <cmdLine>
+ 
+#Refer: p37.sh p38.sh p39.sh
+_________________________________________________________________________________________
+
+ User ->shell ->Kernel ->H/w
+	 
+   shell
+   |
+ ---------------
+   systemcall() = FD	 FD=0(STDIN) FD=1(STDOUT)  FD=2(STDERR) FD=0x123(memory)
+   |			 FD=3 to 2 pow 32/64 - Valid Call
+			 |
+			 FD=-1 <== Failed Call
+
+
+ User:    
+  ----------------------------//shell------------------
+	systemcall()
+	|
+	FileSystem<===>PCB |IPC;SCHED;MM;Net|
+	|
+	Device Driver
+	|
+	Device Ctrler
+	|
+------------------------------------------------------
+	H/W
+
+ strace <command>
+ strace  script (or) objfile
+ ------
+  |->list of systemcalls implemented 
+
+printf("Hello")   echo "Hello"  print("Hello") cout<<"Hello" p("Hello") <== Application
+_________________________________________________________________________
+	write(1,"Hello")=FD
+
+
+echo Hello  printf("Hello")  print("Hello")
+|
+write("Hello")=FD
+|
+my_write("Hello")<== FS
+|
+printk(Flag,"Hello")<==DD
+|
+asm(push ....call %0x34 ...)<== DC
+|
+1010101001<== signals 
+
+
+ltrace <command> - to list of libcalls
+strace <command> - to list of systemcalls
+--------------------------------------------------------
+gcc -E p1.c => expand macro + header files + remove the comments(singlLine,MultiLine)
+------------
+ |->pre-processing o/p  --- input to -->compiler
+
+gcc -c p1.c =>p1.o (relocatable object file) - we can't run this file
+    
+gcc -S p1.c =>p1.s (asm file)
+
+gcc -o p1 p1.o p2.o ... =>finall executable file(p1) - ELF 
+
+------------------------------------------------------------------------------------
+File System
+---------------
+ -> Structure -knows where the data is located(inside the HD)
+ -> cat /proc/filesystems {Enter}
+ 
+  cp p1.txt p2.txt				|		
+  						|
+  cp p1.txt /mnt/USB/p2.txt			|  user space
+						|	
+  scp p1.txt <remoteHostIP>:/tmp/p2.txt		|
+ ---------------------------------------------
+  open()read()write()close() //systemcall
+  
+  Filesystem:HD-xfs,ext4,zfs,nfs,proc
+		|
+		DD
+		|
+		DC
+ ---------------------------------------------------------------
+ Storage filesystem logical structure
+ ------------------------------------
+ BootBlock
+ SuperBlock
+ InodeBlock
+ DataBlock
+ 
+ |BB|SB|...|IB1|IB2|..|IBn|DB|  
+ 
+
+ struct boot_block{
+	struct super_block{
+		struct inode1{}
+		struct inode2{}
+		...
+		struct inodeN{}
+	};
+};
+
+ls
+ls -i
+
+	SB ->IB
+	|
+	|
+  FileDescriptor(FD)		FileTable(Global DS)
+	FD=SuccessCode ------------> //Permission check
+					|
+					RC
+					|__inode block
+
+
+
+ fd=open("IP.txt", O_RDONLY);
+ if(fd == -1){
+	perror("msg:");
+	exit();
+ }
+ read(fd,char_var,n);
+	 -------- 
+
+ +-----------+			 1000
+ | 1000 ==================>    +-----------------------+
+ | 1001				| info about 1000 file |
+ | 1002				+----------------------+
+ |				
+				 1001
+ +-----------+			+------------------------+
+				| info about 1001 file   |
+				+------------------------+
+
+Plain Text data
+----
+meta data - fs
+---
+raw data 			 
+
+vi p1.txt
+Hello <==== PLAIN TEXT
+:wq <==
+
+------
+Sector range
+Inode:
+Fsize
+Owner
+disk ..
+-------------
+ |
+ 010101
+	
+	+===================+
+	|	Contents    |
+	+-------------------+
+	| Chapter    |Page  |
+	+------------|------+
+	| File	     |  5   |
+        | process    | 23   |
+        | Memory     | 120  |
+        | Device     |234   |
+        +-------------------+
+	  FileName    Index 
+
+	PageNo 5 to PageNo 22  - info about File
+	PageNo 23 to PageNo 119 - info about process
+
+	int fd1,fd2;
+	fd1=3;
+	fd2=fd1;	Vs	fd4=dup(fd3)
+	---			--	 |__IP.txt file(FD=3)
+	|-->3			 |
+				 |-->IP.txt file(FD=4)
+				
+					FD3 ->IP.txt <-- FD4
+ FD1=open("IP.txt",O_RDONLY);
+ FD2=open("IP.txt",O_RDONLY);  Vs Fold=open("IP.txt",O_RDONLY);
+				  Fnew=dup(Fold);
+
+	dup2(old,new);
+	dup2(fd1,fd2);
+	      |__|
+
+---------------------------------------------------------------------------------------
