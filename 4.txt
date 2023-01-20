@@ -1,0 +1,385 @@
+File - Data
+|
+File Types
+|
+File directory structure	
+				/
+				|
+	-------------------------------------------------
+	|	|	|	|	...	|  ..  |
+	
+File system(Kernel - DS)
+
+BootBlock
+|
+SuperBlock
+|
+InodeBlock
+|
+DataBlock
+
+manual disk partition
+----------------------
+ /dev/sdb - 100GB
+
+/dev/sdb1 -25 GB
+/dev/sdb2 -25 GB
+/dev/sdb3 -25 GB
+/dev/sdb4 -25 GB
+
+mkfs.xfs /dev/sdb1 - filesystem creation
+mkfs.xfs /dev/sdb2 - filesystem creation
+mkfs.xfs /dev/sdb3 - filesystem creation
+mkfs.xfs /dev/sdb4 - filesystem creation
+
+
+mkdir /D1 /D2 /D3 /D4
+
+mount /dev/sdb1 /D1
+mount /dev/sdb2 /D2
+mount /dev/sdb3 /D3
+mount /dev/sdb4 /D4
+
+df - mounted filesystem
+df -T
+df -Th
+
+userlevel:   cd /D1
+	     vi p1.c
+		.... ---->saved under /dev/sdb1 partition 
+	     :wq	  	  
+----------------------------------------------------------------------------------------
+ open()
+ read()
+ dup()
+ perror()
+ close()
+
+   FD ----------->FileTable
+		  - permission test(FD,user,mode)
+			|
+			RC
+			|
+			.ptr -->inode
+--------------------------------------------------------------------------------------
+
+file: ab.h						file:p1.c
+--------------						-------------
+struct Emp{						#include<ab.h> (1)
+	int eid;					int main(){
+	float cost;					 struct Emp e1; (2)
+	char name[20];					 e1.eid=101; (3)
+};							 e1.cost=15334.23;
+----------------------					 e1.name="Mr.abc";
+							}
+
+-----------------------------------------------------------------------------------
+Links
+-------
+1.hardlink => ln oldFile newFile
+2.softlink => ln -s oldFile newFile
+			    -------
+				|- link file (or) softlink (or) symlink file
+
+recap cp (copy)
+--------
+cp oldFile newFile	   Vs    ln oldFile newFile
+     
+file:IP.txt			
+----------
+data1
+data2
+-----------
+cp IP.txt sab.txt	 Vs     ln  IP.txt   ab.txt
+
+cat sab.txt			cat ab.txt
+data1				data1
+data2				data2
+
+vi IP.txt			vi IP.txt		
+data1				data1
+data2				data2
+data3 <== adding new line	data3 <== adding new line
+:wq 				:wq
+cat sab.txt			cat ab.txt
+data1				data1
+data2				data2
+				data3 
+				vi ab.txt
+				data1
+				data2
+				data3
+				DATA4 <== adding new line in ab.txt
+				:wq
+				cat IP.txt
+				data1
+				data2
+				data3
+				DATA4
+
+ls -i IP.txt ab.txt
+1001 IP.txt
+1001 ab.txt
+ls -l IP.txt ab.txt
+<permission>  2 
+	      |__linkCount
+				rm IP.txt
+				ls -l ab.txt
+				... 1 <== singlelink
+				cat sab.txt
+				//we can access - target file
+
+
+vi one.txt
+data1
+data2
+:wq
+
+ln -s one.txt two.txt
+cat one.txt
+data1
+data2
+---------------
+cat two.txt
+data1
+data2
+------------------
+echo "data3" >>one.txt
+------------------------
+cat two.txt
+data1
+data2
+data3
+-------------------------
+vi two.txt
+data1
+data2
+data3
+DATA4
+:wq
+-------------------------
+cat one.txt
+data1
+data2
+data3
+DATA4
+------------------------
+ls -i one.txt two.txt
+
+file two.txt
+ls -l two.txt 
+two.txt ->one.txt
+rm one.txt
+two.txt <== broken file
+if one.txt(source file) is deleted/removed,then target(two.txt) file is broken file.
+-------------------------------------------------------------------------------------
+process
+-------
+  P1 -> PID,PPID,PAddress
+  |
+  P2 -> PID,PPID,PAddress
+system("command")
+
+getpid()  - echo $$
+getppid() - echo $PPID
+
+execution of c object code - PID,PPID
+
+printf("PID:%d\t PPID:%d\n",getpid(),getppid());
+
+P1 - ./p20	-	
+|
+P2 - ./p20(child1) -
+
+ 	P1-Wait <== killed by interrupt/signal
+	|
+	P2(R+)......//orphan process
+	------
+	 |<=== systemD - PID:1  
+
+ PID  PPID
+ 102  101
+ ...
+ 102  1 
+
+	P1 - Wait
+	|		
+	P2 - R+....Exit --//blocked 
+	---
+	|-->Zombie 
+
+ps -l
+  S
+  S
+  R
+  Z <== zombie 
+
+----------------------------------------------------------------------------------
+bash(P1) - PID:101
+|
+./p23(P2) - PID:102  PPID:101
+ | fork()
+ |
+./p23(P3) - PID:103  PPID:102
+	     (Z)
+ps -l
+Z
+|_top - zombie:1
+------------------------------------------------------------------------------------
+vsk@host~]$ echo $$
+1234 <== current shell PID (Active Shell PID)
+
+vsk@host~]$ command(newProcess - PID:4567,PPID:1234)
+
+	P1 (bash) - PID:1234 PAddress:0x9959
+	|
+	P2 (command) - PID:4567 PPID:1234,PAddress:0x6667 -->exit
+
+COW		
+  
+P1 (bash) - PID:1234 PAddress:0x9959-COW(execute child code(command)//on parent Address)
+|
+P2 (command) - PID:4567 PPID:1234
+_________________________________________________________________________________________
+			
+	/proc		/	<== mount point (user level)
+	 |		|
+	------------------------
+	  <systemcall>
+	 |
+	-----------------------
+	proc		xfs  <==== FileSystem
+	|		|
+	DD		DD
+	|		|
+	|---- DC--------|
+	|		|
+	----------------|
+	CPU;RAM		HardDisk
+
+
+Signals
+-------
+ Ctrl+C - Exit Signal
+ Ctrl+Z - Stop Signal 
+------------------------//signal action
+
+ signal() -> signal(Signame,Handler);
+				|
+		        int Handler(int sigNo){
+				//Action
+			}
+ 
+ to get list of signals => kill -l
+
+--------------------------------------------------------------------------------------
+		Linux Process
+			|
+	--------------------------------------------------------------
+	1.User process					  2.System process
+	-by user					 -by systemD (or) init
+	-TTY:pts/<portNumber>				 -TTY: ?
+	-parent: working shell				 -parent: systemD
+	-start ->R+ ->Exit			 -start ->R+ (running in background)
+		 ||					  
+		stop
+	-after successful login			- during os loading time,system process
+	 |					  get started //runlevel process
+	 shell will get initialized		- system process - service
+	 |					|
+	 user I/O =>user process		session leader(SID)
+
+
+P1(PID:101) P2(PID:102) P3(PID:103) P4(PID:104) P5(PID:105) P6(PID:106) P7(PID:107)
+
+process group 
+--------------
+P1 P2 P3	     P4  P5		P6  P7
+-------------	     ------------	-------------
+ |->PGID:101	     |->PGID:104	 |->PGID:106
+
+Session
+--------
+P1 P4 P6 
+----------
+ |->SID:101
+----------------------------------------------------------------------------------------
+systemctl
+systemctl -t service
+
+
+vsk@host~]$ mysql -u root -p {Enter}<== User process
+mysql>
+mysql>					mysqld.service <== systemprocess
+mysql> 					--------------
+						|__Running(R+)
+						|
+						|-parent is:systemD
+
+https://www.google.com //user process - httpd.service - R+ //parent is systemD
+-----------------------
+
+ssh <remotehost>//user process - sshd.service - R+ //parent is systemD
+
+network.service //network daemon
+
+systemctl status sshd.service
+
+systemctl status httpd.service
+
+systemctl status crond.service
+	  ------
+
+systemctl is-active sshd.service 
+	  ----------
+
+systemctl start filename.service
+
+ex: systemctl start atd.service (or) systemctl start atd
+	      -----
+	      stop
+	      ----
+	      restart
+	      --------
+su - 
+
+root@host~]# whoami
+root
+find / -name stat.h
+
+systemctl start atd
+systemctl status atd
+----------------------------------------------------------------------------------------
+User process -> system process
+------------
+1. create a unit (or) service file
+2. reload the daemon
+3. enable service
+4. start a daemon
+------------------------------------------//
+
+1. create a unit (or) service file
+/etc/systemd/system/filename.service 
+[Unit]
+Description=<Own Description>
+[Service]
+ExecStart=<actual_Execution_code>
+[Install]
+WantedBy=multi-user.target
+
+
+2. reload the daemon
+   -----------------
+systemctl daemon-reload
+
+3. enable service
+-----------------------
+systemctl enable filename.service
+
+4. start a service # test
+------------------
+systemctl start filename.service
+|
+5.systemctl status filename.service (or) systemctl status filename
+
+==================================================================================
