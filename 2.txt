@@ -1,0 +1,1001 @@
+https://github.com/Krosumlabs/Linux
+
+krosum - unix shell script playlist 
+---------------------------------------------------------------------------
+shell variable (or) builtin variable(or) system variable(or) exported variable 
+(or) env variable
+
+env {Enter}
+----
+  shell variables are global access 
+		      ------
+ 
+echo $SHELL - default login shell
+echo $PATH  - command env path
+echo $HOME  - login path
+echo $PWD   - same as pwd command
+echo $UID   - user ID  (root user ID ->0 ; non-root user ID ->non-zero)
+..
+
+echo "My Login shell name is:$SHELL"
+myvar=$SHELL # we can initialize shell variable to UDV
+echo "myvar value is:$myvar"
+echo "List of files $HOME directory"
+ls -l $HOME
+-------------------------
+export UDV=value
+	(or)
+ UDV=value
+ export UDV
+-------------------------
+
+[root@student Temp]# DB="/usr/bin/oracle"
+[root@student Temp]# echo $DB
+/usr/bin/oracle
+[root@student Temp]# sh
+sh-4.2# echo $DB
+
+sh-4.2# exit
+exit
+[root@student Temp]# export DB
+[root@student Temp]# sh
+sh-4.2# echo $DB
+/usr/bin/oracle
+sh-4.2# ksh
+# echo $DB
+/usr/bin/oracle
+# exit
+sh-4.2# exit
+exit
+[root@student Temp]# env|grep -i DB
+DB=/usr/bin/oracle
+[root@student Temp]# env|grep -i Db
+DB=/usr/bin/oracle
+---------------------------------------------------------------------------------
+unset variable
+-----
+
+var=10	   var | 10 | 0x1234
+echo ${var} ->10
+..
+unset var --------------//delete
+var - undefined variable 
+echo ${var} ->Empty
+
+[root@student Temp]# Fname="p1.log"
+[root@student Temp]# echo $Fname
+p1.log
+[root@student Temp]# unset Fname
+[root@student Temp]# echo $Fname
+---------------------------------------------------------------------------------
+read UDV
+export UDV=Value
+unset UDV
+------------------------//commands
+In commandline -> echo $0 - print working shell (or) current shell name
+		       ---
+			|<== inside shellscript(file.sh) - script filename
+
+In commandline -> echo $$ - print working shell PID
+		       --
+			|<== inshell script(file.sh) - execution of script PID
+
+In commandline -> echo $PPID - working shell parent process PID
+		       -----
+			 |<== in shell script(file.sh) - active shell PID
+----------------------------------------------------------------------------------  
+[root@student Temp]# whatis basename
+basename (1)         - strip directory and suffix from filenames
+[root@student Temp]#
+[root@student Temp]# basename /root/project/L1/L2/L3/L4/p1.c
+p1.c
+[root@student Temp]# basename ../../../p1.c
+p1.c
+[root@student Temp]# basename ./p1.sh
+p1.sh
+[root@student Temp]# cat -n p5.sh
+     1  echo "Working script file name:$0"
+     2  echo "PID:$$  Parent PID:$PPID"
+[root@student Temp]# ./p5.sh
+Working script file name:./p5.sh
+PID:3251  Parent PID:1970
+[root@student Temp]# /root/Temp/p5.sh
+Working script file name:/root/Temp/p5.sh
+PID:3256  Parent PID:1970
+[root@student Temp]#
+[root@student Temp]# basename p5.sh
+p5.sh
+[root@student Temp]# vi p5.sh
+[root@student Temp]# cat -n p5.sh
+     1  echo "Working script file name:$0"
+     2  echo "PID:$$  Parent PID:$PPID"
+     3  echo "Working script file name: `basename $0`"
+[root@student Temp]# ./p5.sh
+Working script file name:./p5.sh
+PID:3339  Parent PID:1970
+Working script file name: p5.sh
+[root@student Temp]#
+-----------------------------------------------------------------------------------	Commandline arguments
+----------------------
+$1 $2 $3 .. $9
+-- --       ---
+|   |        |->9th argument
+|   |->2nd argument
+|_ 1st argument
+
+${n}
+  |___nth argument
+
+echo $3   same as  echo ${3} # 3rd argument
+echo ${10} # this is 10th argument
+echo ${15} # 15th argument
+echo $@ (or) ${@} - list of all the arguments
+echo $* (or) ${*} - list of all the arguments
+
+echo $# (or) ${#} - Total no.of arguments 
+
+
+file: p1.sh					file: p2.sh		
+---------------					---------------
+read -p "Enter your IP:" IP			ping -c $2 $1 >$3
+read -p "Enter a count:" count			----------------
+read -p "Enter a filename:" fname
+
+ping -c $count $IP >$fname
+------------------------------------
+root@host~]# chmod a+x p1.sh Vs  root@host~]# ./p2.sh 127.0.0.1 2 r1.log {Enter}
+root@host~]# ./p1.sh {Enter}		      ------- ========= = ======
+Enter your IP:						  	
+
+---------------------------------------------------------------------------------
+echo $1 $2 $3
+echo ${1} ${2} ${3}
+echo # empty line
+echo $@
+echo "Total no.of args:$#"
+echo "10th arg:${10} 11th arg:${11}"
+-----------------------------------------------------------------------------------
+Array - variable - holding more than one value
+-----
+syntax:-
+--------
+arrayname=(<list of items>)
+
+v=`cmd` Vs a=(`cmd`)
+
+arr=(RHL5 RHL6 RHL7 DEB14 DEB15 DEB20 67 9.8)
+       0   1    2     3     4     5   6   7
+
+How to fetch single value?
+ ${Arrayname[index]}
+
+echo ${arr[1]}   => RHL6
+echo ${arr[5]}   => DEB20
+
+echo ${arr[9]} =>empty
+
+Array is mutable
+arrayname[old_index]=Updated_value
+
+arr[5]="Ubuntu"
+echo ${arr[5]}   => Ubuntu
+
+arrayname[new_index]=Value # adding data to an array
+
+# How to print list of items from array?
+   ${Arrayname[@]}  (or) ${arrayname[*]} 
+
+# Total no.of items ==> ${#Arrayname[@]} (or) ${#Arrayname[*]}
+--------------------------------------------------------------------------
+
+[root@student Temp]# grep sales emp.csv
+101,raj,sales,pune,1000
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+[root@student Temp]#
+[root@student Temp]# v=`grep sales emp.csv`
+[root@student Temp]# echo "${v}"
+101,raj,sales,pune,1000
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+[root@student Temp]#
+[root@student Temp]# a=(`grep sales emp.csv`)
+[root@student Temp]# echo ${#a[@]}
+3
+[root@student Temp]# echo ${a[0]}
+101,raj,sales,pune,1000
+[root@student Temp]# echo ${a[1]}
+194,kumar,sales,bglore,2340
+[root@student Temp]# date
+Tue Jan 24 10:40:40 IST 2023
+[root@student Temp]# d=(`date`)
+[root@student Temp]# echo
+login as: root
+root@192.168.43.97's password:
+Last login: Tue Jan 24 09:32:49 2023 from 192.168.43.145
+[root@student ~]# cd Temp/
+[root@student Temp]#
+[root@student Temp]# d=(`date`)
+[root@student Temp]# echo ${d[0]}
+Tue
+[root@student Temp]# echo ${d[1]}
+Jan
+[root@student Temp]# echo ${d[2]}
+24
+[root@student Temp]# date
+Tue Jan 24 10:41:33 IST 2023
+[root@student Temp]# echo ${d[3]}
+10:41:20
+[root@student Temp]# echo ${d[4]}
+IST
+[root@student Temp]# echo ${d[5]}
+2023
+[root@student Temp]# echo ${d[0]}  ${d[5]}
+Tue 2023
+[root@student Temp]# echo "${d[0]}-${d[5]}"
+Tue-2023
+---------------------------------------------------------------------------------
+servers=($@) # we can initialize command line args inputs to array
+....
+echo ${#servers[@]}   same as  $#
+---------------
+./p1.sh RHL5 RHL6 winx DEB14 OL5 OL6
+--------------------------------------------------------------------------------
+[root@student Temp]# read servers
+RHL5 RHL6 RHL7
+[root@student Temp]# echo ${servers[1]}
+
+[root@student Temp]# echo $servers
+RHL5 RHL6 RHL7
+[root@student Temp]# read -a servers
+RHL5 RHL6 RHL7 DEB14
+[root@student Temp]# echo ${servers[1]}
+RHL6
+[root@student Temp]# echo ${servers[2]}
+RHL7
+[root@student Temp]# echo ${servers[0]}
+RHL5
+[root@student Temp]#
+----------------------------------------------------------------------------------
+Write a shell script
+using commandline argument - pass any 5 commands (arguments)
+initialize list of commands(arguments) to Array
+using array - fetch index by index - execute this command - initialize command result to UDV.
+using echo command - display command name - command results to monitor.
+Note: use single echo command
+-----
+
+  ./pt.sh date uname whoami pwd hostname {Enter}
+	  ------------------------------
+date  command result is: ............
+uname command result is: .............
+...
+=================================================================================
+shell operators
+----------------
+1.Arithmetic 
+--------------
++ - * / % 
+
+ -> expr command
+ -> compound style $(( ))
+
+-> expr command
+   ----
+   expr<space>Operand<space>OPERATOR<space>Operand
+	     |-----------------------------------| 
+   
+   expr 10 + 20 ->30   Vs   expr 10+20 ->10+20
+   ------------
+   r=`expr 10 + 20`
+   |
+   |__ echo ${r}
+   echo "Total value:`expr 10 + 20`" 
+
+  [root@student Temp]# echo 10 + 20
+10 + 20
+[root@student Temp]# expr 10 + 20
+30
+[root@student Temp]# expr 10 - 20
+-10
+[root@student Temp]# expr 10 / 20
+0
+[root@student Temp]# expr 10 / 2
+5
+[root@student Temp]# expr 10 % 3
+1
+[root@student Temp]# expr 10 * 3
+expr: syntax error
+[root@student Temp]# expr 10 \* 3
+30
+[root@student Temp]# n=5
+[root@student Temp]# n=`expr $n + 1`
+[root@student Temp]# echo $n
+6
+
+ -> Compound style $((expression))
+ ------------------------------------
+
+    echo $((10+20)) ->30
+    echo $((10     +20)) ->30
+
+    echo $((10*5)) ->50
+   
+ va=10
+ vb=20
+
+ expr $va + $vb		Vs   echo $((va+vb))
+ 
+ n=5			     n=5
+ n=`expr $n + 1`	     echo $((++n))    Vs echo $((n++))   Vs echo $((n--))
+ echo $n			
+-----------------------------------------------------------------------------------
+Write a shell script
+- read a disk partition name from <STDIN>
+- read a partition size from <STDIN>
+|
+- read another disk partition name & size 
+|
+Calculate sum of two partitions 
+|
+Display - each partition name - size
+	  total partition size
+------------------------------------------------------------------
+Expected Result:
+Enter a partition: /dev/sdb1
+Enter /dev/sdb1 size:150
+Enter a partition: /dev/sdb2
+Enter /dev/sdb2 size:250
+
+Partition /dev/sdb1	size:150 GB
+Partition /dev/sdb2     size:250 GB
+-----------------------------------------
+			Total Size:400GB
+-----------------------------------------
+
+read -p "Enter a partition:" p1
+read -p "Enter $p1 size:" s1
+
+read -p "Enter a partition:" p2
+read -p "Enter $p2 size:" s2
+
+total=`expr $s1 + $s2`
+
+echo "
+Partition $p1	size:$s1 GB
+Partition $p2   size:$s2 GB
+-----------------------------------------
+	  Total Size:$total GB
+-----------------------------------------"
+=============================================================================
+
+r=`ps -e|wc -l`
+
+result=`expr $r + 1`
+------------------------------------------------------------------------------
+$? - last command operation exit code
+			    ---------
+commandA			|-> 0 (Success) ; non-zero(Failed)
+commandB
+echo $? -- commandB exit status 
+
+1 2 3 4 .. 126 127 //failed 
+
+relational operators
+----------------------
+	|->1. number based =>   -eq -ne -lt -le -gt -ge
+	|->2. string based =>   ==  != 
+
+command -->o/p-> number  // use -eq -ne -lt -le -gt -ge operators
+|
+o/p -> string // use  ==  != operators
+
+10 -eq 10	"ab" == "ab"
+
+10 -ne 20	"Ab" != "ab"
+
+`ps -e|wc -l` -gt 100 
+
+`whoami` == "root"   $UID -eq 0 
+
+test (or) [ ] operator
+
+test<space>Operand<space>Operator<space>operand
+ (or) 
+[<space>Operand<space>Operator<space>operand<space>]
+
+test 10 -eq 10 (or)  [ 10 -eq 10 ]
+
+test "`whoami`" == "root" (or) [ "`whoami`" == "root" ]
+
+
+1
+[root@student Temp]# [ 10 -eq 10 ]
+[root@student Temp]# [ 10 -eq 20 ]
+[root@student Temp]#
+[root@student Temp]# [ 10 -eq 10 ]
+[root@student Temp]# echo $?
+0
+[root@student Temp]# [ 10 -eq 20 ]
+[root@student Temp]# echo $?
+1
+[root@student Temp]#
+-----------------------------------------------------------------------------------
+Conditional statement
+----------------------
+ |->Code block - execute only one time.
+ |
+ |-> if case
+ |-> if statement 
+	|-> 1) if only   2) if..else	3)if..elif..elif...elif ...
+
+ 1) if only
+ ------------
+ if<space>[ condition ]
+ then
+	Code block
+ fi
+ 
+ 2) if else
+ ------------
+ if<space>[ condition ]
+ then
+	Code block - True
+ else
+	Code block - False
+ fi
+
+# if then else fi - keywords 
+
+bash -x p11.sh
++ read -p 'Enter a n value:' n
+Enter a n value:55
++ '[' 55 -gt 50 ']'
++ echo 'True block - Given n value is:55'
+True block - Given n value is:55
+++ expr 55 + 100
++ n=155
++ echo 'updated n value:155'
+updated n value:155
+-----------------------------------------------------------------------------------
+Write a shell script
+- read a port number from <STDIN>
+|
+- test input port number is above 500 - initialize app name is testApp1
+		            ---------
+				- initialize app name is testApp2
+- display appname & running port number.
+
+read -p "Enter a port number:" port
+
+if [ $port -gt 500 ]
+then
+	app="testApp1"
+else
+	app="testApp2"
+fi
+echo "App name is:${app}  Running port number is:${port}"
+
+--------------------------------------------------------------------------
+multiconditional style
+------------------------
+if<space>[ condition1 ]
+then
+	True block-1
+elif<space>[ condition2 ]
+then
+	True block-2
+elif<space>[ condition3 ]
+then
+	True block-3
+..
+elif<space>[ conditionN ]
+then
+	True block-N
+else
+	False block
+fi
+Write a shell script
+- read a shell name from <STDIN>
+- test input shell name is bash - initialize profile filename is bashrc
+  test input shell name is ksh  - initialize profile filename is kshrc
+  test input shell name is csh  - initialize profile filename is cshrc
+  |
+  default shell name is /bin/nologin  - initialize profile filename is /etc/profile
+
+- display - shell name & profile filename 
+
+read -p "Enter a shell name:" var
+
+if [ $var == "bash" ]
+then
+	fname="bashrc"
+elif [ $var == "ksh" ]
+then
+	fname="kshrc"
+elif [ $var == "csh" ]
+then
+	fname="cshrc"
+else
+	echo "Sorry shell $var is not matched"
+	echo "So the default initializations are:"
+	var=/bin/nologin
+	fname=/etc/profile
+fi
+echo "Login shell name is:$var  profile filename is:$fname"
+------------------------------------------------------------------------------------
+case statement - Conditional style code block
+	
+Syntax:-
+--------
+case  value  in
+pattern1) pattern1 block operation
+	  ;;
+pattern2) pattern2 block operation
+	  ;;
+pattern3) pattern3 block operation
+	  ;;
+..
+patternN) patternN block operation
+	  ;;
+*)  default operation
+esac 
+# case in esac - keywords 
+-----------------------------------------------------------------------------------
+Logical Operators
+-------------------
+In Single Conditional statement, test more than one condition
+we can use logical operators.
+
+example: working kernel is Linux
+         Login shell /bin/bash
+
+example: Login shell /bin/bash or /bin/ksh - any one shell is matched 
+
+Logical AND  -a  
+Logical OR   -o
+Logical NOT   !
+
+[ "`uname`" == "Linux"  -a  "$SHELL" == "/bin/bash" ]
+  --------------------       ----------------------
+	     
+if [ "`uname`" == "Linux"  -a  "$SHELL" == "/bin/bash" ]
+then
+		....
+else
+		....
+fi
+
+if [ "$SHELL" == "/bin/bash" -o "$SHELL" == "/bin/ksh" ]
+then
+	..
+else
+	..
+fi
+
+if ! [ "`whoami`" == "root" ]
+then
+	...
+fi
+---------------------------------------------------------------------
+expanded test operator [[ condition ]]
+----------------------
+
+[ "`whoami`" == "root" -a "$SHELL" == "/bin/bash" -a `ps -e|wc -l` -gt 100 -a 10 -eq 10 ] //OK
+
+[ "`whoami`" == "root" -a "$SHELL" == "/bin/bash" ] -a [ `ps -e|wc -l` -gt 100 -a 10 -eq 10 ] //Error
+
+[[ "`whoami`" == "root" && "$SHELL" == "/bin/bash" ]] && [[ `ps -e|wc -l` -gt 100 && 10 -eq 10 ]] //Ok
+------------------------------------------------------------------------------
+FileTest Operators
+-------------------
+ File Types   &  File mode(operation) - read(-r) write(-w) execute(-x)
+ ----------
+  ->Reg.file  -f
+  ->Directory -d
+  ->linkfile  -l 
+  ->chartype  -c
+  ->blocktype -b
+  ->namedpipe -p
+  ->SocketFile -S
+
+[<space><fileTestOperator><space><inputFileName><space>]
+
+Test input file is reg.file or not ?
+
+[ -f  filename ]
+
+[ -r filename ] <== test read permission is exists or not
+
+ -e <== exists or not 
+
+if [ -f filename ]
+then
+	cat filename
+	cp filename newfile
+	ls -l filename	
+	...
+	...
+else
+	echo "Not a reg.file"
+	exit
+fi
+
+if [ -d demo ]
+then
+	ls -ld demo
+fi
+------------------------------------------------------------------------------
+Write a shell script
+ - read a filename from <STDIN>
+ |
+ - test input file is existing or not
+		      --------    ---
+			|
+			|->test1 - test file is directory file or not
+						(ls -ld <filename> |
+			   test2 - test file is reg.file or not -<-|
+						|
+						ls -l <filename>
+			   |->file <filename>
+
+read -p "Enter a filename:" fname
+
+if [ -e $fname ]
+then
+	if [ -d $fname ]
+	then
+		echo "File:$fname is a directory file"
+		ls -ld $fname
+	elif [ -f $fname ]
+	then
+		echo "File:$fname is a reg.file"
+		ls -l $fname
+	else
+		echo "File:$fname is exists"
+		file $fname
+	fi
+else
+	echo "Sorry file:$fname is not exists"
+fi
+
+---------------------------------------------------------------------------
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: Commandline argument allows single inputfile"
+	echo "$0 <directoryName>"
+	exit
+fi
+
+if [ -d $1 ]
+then
+	echo "Directory $1 is already exists"
+	ls -ld $1
+else
+	mkdir $1 >r1.log 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "Directory $1 is created"
+		ls -ld $1
+	else
+		echo "Directory $1 creation is failed"
+		echo "Refer r1.log file"
+	fi
+fi
+
+-----
+command validations
+--------------------
+
+[root@student Temp]# date >r1.log 2>&1
+[root@student Temp]#
+[root@student Temp]# if date >r1.log 2>&1
+> then
+>    echo "OK"
+> else
+>    echo "Failed"
+> fi
+OK
+[root@student Temp]# if datee >r1.log 2>&1
+> then
+>    echo "OK"
+> else
+>    echo "Failed"
+> fi
+Failed
+[root@student Temp]# if 0
+> then
+> echo "OK"
+> else
+> echo "Failed"
+> fi
+-bash: 0: command not found
+Failed
+[root@student Temp]# if [ 0 ]
+> then
+> echo "OK"
+> else
+> echo "Failed"
+> fi
+OK
+[root@student Temp]#
+
+---------------------------------------------------------------------------------
+
+command1 && command2 
+--------
+  |
+ Success -->-- invoke Command2
+			
+ command1 && command2
+ |
+ failed -->-- won't invoke command2
+--------------------------------------------------------
+mkdir D1 && ls -ld D1
+
+[ -f filename ] && cat filename 
+
+
+command1 || command2
+-------
+|
+success--->--won't invoke command2
+
+command1 || command2
+-------
+|
+Failed--->-invoke command2
+
+[root@student Temp]# echo One && echo Two
+One
+Two
+[root@student Temp]# [ 10 -eq 20 ] && echo Two
+[root@student Temp]#
+[root@student Temp]# [ 10 -eq 10 ] && echo Matched
+Matched
+[root@student Temp]# mkdir D1 && ls -ld D1
+drwxr-xr-x. 2 root root 6 Jan 24 15:45 D1
+[root@student Temp]#
+[root@student Temp]# echo One || echo Two
+One
+[root@student Temp]# [ 10 -eq 20 ] || echo Two
+Two
+[root@student Temp]#
+----------------------------------------------------------------------------------
+! [ -f filename ] && exit
+-------------------------------//singleline style
+
+if ! [ -f filename ]
+then
+	exit
+fi
+--------------------------------//block style
+==================================================================================
+Looping statements 
+---------------------
+ -> Code block - block will execute more than one time
+ |
+ -> Conditional style loop - based on the condition(bool) - while
+ |
+ -> Collection style loop  - based on the no.of items	  - for
+ |
+ -> Conditional style loop - based on the condition(bool) - while
+
+Rule 1: initialization			i=0		i=15
+Rule 2: testing				$i -lt 5	$i -gt 10
+Rule 3: arithmetic (increment/decrement) expr $i + 1	expr $i - 1
+
+initialization
+while<space>[  condition ]
+do
+	Code block
+	arithmetic
+done
+# while do done - keywords 
+
+i=0
+while [ $i -lt 3 ]
+do
+	ps -f
+	sleep 2
+	i=`expr $i + 1` # ((i++))
+done			
+-------------------------------------------------------------------------------
+read -p "Enter a login name:" name
+if [ $name == "admin" -o $name == "ADMIN" ]
+then
+	echo "Matched"
+else
+	echo "Not-Matched"
+fi
+
+i=0
+while [ $i -lt 3 ]
+do
+ read -p "Enter a login name:" name
+ if [ $name == "admin" -o $name == "ADMIN" ]
+ then
+	echo "Matched"
+ else
+	echo "Not-Matched"
+ fi
+i=`expr $i + 1`
+done
+
+break - exit from loop 
+-----
+
+Write a shellscript
+- initialize a pin number: (pin: 1932)
+  |
+  using while loop (limit is 3)
+	- read a input pin from <STDIN>
+	- test a input pin with existing pin(1932)
+	- display pin is success - count (ex: matched - at 1)
+  	|
+	- if all 3 inputs are failed - pin is blocked.
+-------------------------------------------------------------------------------
+cpu loadbalance evey 5 secs - 5times - write to external log file
+    ---------
+	|
+	uptime
+
+c=0
+while [ $c -lt 5 ]
+do
+	uptime
+	sleep 5
+	c=`expr $c + 1`
+done >/var/log/LB.log
+---------------------------------------------------------------------------------
+while<space>:
+do
+	codeblock
+done
+	<or>
+while true
+do
+	codeblock
+done
+----------------------------//always true
+--------------------------------------------------------------------------------
+
+while :
+do
+   uptime >>LB.log
+done 
+---------------------------------------------------------------------------------
+2. Collection style
+--------------------
+Syntax:-
+---------
+for variable in <list of items>
+do
+	code block
+done
+
+# for in do done - keywords 
+# 
+
+for v in 10 1.5 data /etc/passwd 10.20.30.40
+do
+	echo "v value is:$v"
+	sleep 1
+done
+
+------
+
+[root@student Temp]# ls *.log
+p1.log  p2.log  p3.log  r1.log
+[root@student Temp]# for v in `ls *.log`
+> do
+> echo "File name:$v"
+> ls -l $v
+> sleep 1
+> done
+File name:p1.log
+-rw-r--r--. 1 root root 84 Jan 24 16:57 p1.log
+File name:p2.log
+-rw-r--r--. 1 root root 84 Jan 24 16:57 p2.log
+File name:p3.log
+-rw-r--r--. 1 root root 84 Jan 24 16:57 p3.log
+File name:r1.log
+-rw-r--r--. 1 root root 18 Jan 24 16:26 r1.log
+[root@student Temp]#
+-------------------------------------------------------
+
+until loop
+-----
+ -> opp.of while loop 
+	   
+ until [ condition ]
+ do	 --------//True--->won't execute the code block
+	  |
+	False-code block will execute
+ done
+
+while ! [ condition ]  -- same as -- until [   ]
+do				     do
+				
+done				     done
+-----------------------------------------------------------
+select loop
+------
+ -> menu driven programming
+ |
+ -> always running 
+ |
+ -> #? <== select loop prompt 
+
+primary prompt variable is PS1 -> echo $PS1
+secondary prompt variable is PS2 -> echo $PS2
+select loop promt variable is PS3
+debugging prompt variable is PS4 ->echo $PS4
+
+select variable in <list of items>
+do
+	code block
+done
+
+select variable in <menu1> <menu2> <menu3> <menu4> <quit>
+do
+	case $variable in
+	<menu1>)  menu1 operation 
+		  ;;
+	<menu2>)  menu2 operation
+		  ;;
+	 ...
+	 quit)   echo "Bye!" 
+		 break
+		 ;;
+	 *)	echo "Invalid choice"
+	esac
+done
+----------------------------------------------------------------------------
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
