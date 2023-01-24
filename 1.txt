@@ -1,0 +1,841 @@
+print("Hello"); printf("Hello"); echo "Hello"; cout<<"Hello" - User Layer
+dateee ->dateee command notfound
+		--------------------//STDERR
+___________________________________//shell______________________________
+	write(1,"Hello") //systemCall  write(2,"command notfound")
+	|
+	my_write_("Hello")
+	|
+	printk(Flag,"Hello")
+	|
+	asm
+	|
+----------------------------------------------------
+	10101010
+
+systemcall()=FD
+	
+FD=0(STDIN)	FD=1(STDOUT)	FD=2(STDERR)
+
+FD=0x2345 - memory     FD=3 to 2 pow 32/64 - ValidCalls
+FD=-1 <==FailedCall 
+
+
+------------------------------------------------------------------------------------
+Shell 
+-----
+ -> Interface between user & kernel
+ |
+ -> Types of shell
+    --------------
+    1.BourneShell (or) sh
+    2.KornShell (or) ksh
+    3.CShell(csh) ->tcsh ->expect
+    4.Zshell(zsh)
+    |
+    5.BourneAgainSHell(BASH) - in Linux default shell is bash //GNU
+
+-> To display current working shell (or) Active shell 
+	1) ps  - in command line type ps command
+	2) echo $0 <== special variable 
+    		
+-> To check list of available shells
+   cat /etc/shells {Enter}
+
+-> we can change from one shell(current shell) to another shell
+____________________________________________________________________________
+Linux Boot Process
+-------------------
+
+OFF =>Switch ON PC => POST(Power on Self Test) =>MBR(MasterBootRecord)
+						  |
+						 BootLoader(grub/grub2)
+						  |
+						 Kernel 
+						  |
+						 process(systemd (or) init) //PID:1
+						  |
+						 system process(?)
+						  |
+						 getty(?) (or) Login:___
+							       passwd:___
+						  |
+						Shell(CLI)  Vs  Desktop(GUI)
+						  |		   |
+					     User I/O	     User I/O //userprocess
+
+-----------------------------------------------------------------------------------
+Linux File directory structure
+------------------------------
+			
+			/ <== root directory - like Mycomputer
+			|
+	-----------------------------------------------------------
+	|	|	|	|     |	..	|   |	   |	 ..
+	bin/	etc/   proc/   root/  home/    dev/ mnt/   tmp/  <== sub-directory
+			       -----  =====
+				|	|_non-root user login path
+				|
+			root user login
+			path	
+						
+			
+Login as: root			Login: arun		Login: anu
+password: ....			password:		password:
+
+root@hostname~]# pwd		arun@hostname~]$ pwd	anu@hostname~]$ pwd
+/root				/home/arun		/home/anu
+
+ ~ <== login directory symbol
+
+/bin/filename      - internal  commands - by default 
+/usr/bin/filename  - external  commands - while os installation time (or) 		     using package management installed any utilites
+/sbin/filename    - root user only can access 
+
+cd<space><directoryName>
+
+cd /etc
+pwd
+/etc
+cd /home/userA (or) cd ~ (or) cd {Enter}
+pwd
+/home/userA
+
+cd .. # change to parent 
+------------------------------------------------------------------------------------
+Linux File Types
+----------------
+1. Regular File (or) Ordinary File 
+	a. ASCII (or) TEXT - user can able to read/understand the content
+	  (ex: p1.java p1.c p1.py p1.html p1.txt p1.log etc.,)
+	b. ELF (or) object  - user can't able to read/understand 
+	   (ex: all the unix/linux commands; c object file (or) compiled files)
+
+2. Directory File
+
+3. Link file (or) soft link file (or) symbolic link file (or) symlink file
+
+4. Device File (/dev)
+	|_ a. character type device (ex: keyboard,printer,terminal)
+	|_ b. block type device (ex: storage devices,USB devices)
+
+5. named PIPE (or) FIFO 
+6. Socket File
+
+file <fileName>
+------------------------------------------------------------------------------------
+whatis <command> - definition of a command
+
+man <command> 
+------------------------------------------------------------------------------------
+1. command only style
+------------------------
+date
+ls
+ps
+whoami
+hostname
+pwd
+..
+
+2. command argument style
+----------------------------
+date +%D
+echo Hello
+echo Linux system programming   Vs  echo "Linux system programming"
+..
+3. command with command style
+------------------------------
+command "argument `command`..."
+echo "Today:`date +%D`"
+echo "My Login name is:`whoami`"
+---------------------------------------------------------------------------------
+File manipulation commands
+----------------------------
+directory manipulation commands
+ - to create a directory => mkdir<space><dirName> (ex: mkdir D1)
+ - to create a dir/subdir/subdir.. =>   mkdir -p D1/D2/D3/D4
+ - ls <dirname>
+ - ls -R <dirname>
+ - rmdir <dirname>	Vs  rm -r <dirname>
+ |
+ - to copy a directory file => cp -r <oldDir>  <newDir>
+ |
+ - to rename a directory file =>  mv <oldDir> <newDir>
+ - to move a directory file  => mv <oldDir1> <oldDir2> 
+---------------------------------------------------------------------------------
+Regular file manipulation commands
+------------------------------------
+ 1. editor => vi (or) vim - commandline editor
+
+    vi filename{enter} -(1)
+   +-----------------------------+
+   |			         |
+   |    command mode             |
+   |     - press i (or) insert(2)|
+   |				 |
+   |				 |
+   +-----------------------------+
+  	|
+	press ESC =>command mode
+	|
+	ESC :w  (write -save) {Enter}
+	ESC :wq (save & quit) {Enter}
+
+   cat filename {Enter} 
+
+   	ESC :q! <== forced to quit 
+ To copy the line content -> ESC ->yy (line copy) ->p (paste) 
+ undo opertion ->ESC u(undo)
+ redo operation ->ESC .(redo)
+  
+ To copy no.of lines => ESC =>Nyy N(No.of lines) ->p (paste)
+			     3yy ->3 lines are copied -> p(paste)
+ 
+ To copy the words -> ESC ->yw ->p(paste)
+			   3yw (3 words are copied) ->p (paste)  
+
+ To delete a line -> ESC -> dd 
+		     ESC -> 3dd -> 3lines are deleted 
+		     ESC -> 5dd -> 5lines are deleted 
+ To delete a word -> ESC -> dw 
+		     ESC -> 3dw -> 3words are deleted 
+
+ To delete a single char -> ESC ->x (delete a character)
+
+ ESC ->o(small) - create new line in below ->changed to insert mode
+ ESC ->O(upper) - create new line in above ->changed to insert mode ---------------------------------------------------------------------------
+To copy the file content from one file to another file
+cp oldFILE newFILE
+
+cp p1.txt p2.txt
+cp p1.txt /tmp/p2.txt
+cp p1.txt /tmp
+	  ----
+
+cp -i p1.txt p2.txt
+overwrite:Y/N?
+
+To rename old file => mv old new
+To move the file to directory => mv old <directory>	
+
+cp p1.txt /tmp   Vs  mv p1.txt /tmp
+	  ----		       -----
+rm <filename>
+rm -i <filename>
+
+word count(wc)
+--------------
+wc <filename>
+Totalno.of Lines   Totalno.of words Totalno.of chars
+
+wc filename
+[root@student Temp]# cat p1.txt
+List of servers
+-----------------
+Linux
+winx
+macos
+RedHatLinux
+Debian
+OracleLinux
+-------------------
+[root@student Temp]# wc p1.txt
+  9  11 102 p1.txt
+[root@student Temp]# wc -l p1.txt
+9 p1.txt
+[root@student Temp]# wc -w p1.txt
+11 p1.txt
+[root@student Temp]# wc -c p1.txt
+102 p1.txt
+[root@student Temp]#
+------------------------------------------------------------------------
+wildcards 
+* 
+ls p*
+-------------------------------------------------------------------------
+Task:
+------
+	step 1: Go to your login path
+	step 2: Display present working directory
+	|
+	step 3: create directory structure below format
+
+			[ ERP ]
+			   |
+	---------------------------------	
+	|		|		|
+	Enquiry		Prod		FI
+	|		|		|
+	|__ICR		Stores		Accounts
+	|__OCR	
+
+	step 4: create a newfile enq.txt under OCR directory	
+		write some text ->save this file(enq.txt)
+	|
+	step 5: copy this file(enq.txt) into Stores location
+	|
+	step 6: rename enq.txt file into test.log under OCR directory
+	|
+	step 7: copy test.log file into Accounts/invoice.txt 
+	|
+	step 8: ls -R ERP		
+--------------------------------------------------------------------------------
+grep
+----
+ |-> search a pattern from FILE
+ |-> print matched pattern line if pattern is matched from inputfile
+
+ |-> grep -option pattern inputFILE
+		  --------
+ pattern: text(or)string
+ action:  print/display matched pattern line
+
+
+-n matched pattern line number
+-i ignore case 
+-c matched pattern count
+-v not matching given pattern
+
+To search multiple pattern
+
+grep -e 'pattern1' -e 'pattern2' -e 'pattern3' inputfile
+
+	(or)
+egrep 'pattern1|pattern2|pattern3' inputfile
+	
+	(or)
+grep -E 'pattern1|pattern2|pattern3' inputfile
+
+-e extended pattern 
+-l matched pattern filename
+---
+
+grep <pattern> <inputFile>
+	|
+	menu   ...........
+			
+grep menu *
+grep menu *.sh
+		
+	Vs
+grep -l menu *.sh
+grep -l menu *
+
+
+[vsk@student Activiy-1]$ grep getpid *.c
+p18.c:  printf("PID:%d\t PPID:%d\n",getpid(),getppid());
+p20.c:  printf("PID:%d\t pid:%d\n",pid,getpid());
+p21.c:  printf("PID:%d\t PPID:%d\n",getpid(),getppid());
+p22.c:  printf("(1)PID:%d PPID:%d\n",getpid(),getppid());
+p22.c:    printf("(2)PID:%d PPID:%d",getpid(),getppid());
+p22.c:    printf("(3)PID:%d PPID:%d",getpid(),getppid());
+p23.c:          printf("Child Block:%d",getpid());
+[vsk@student Activiy-1]$
+[vsk@student Activiy-1]$
+[vsk@student Activiy-1]$ grep -l getpid *.c
+p18.c
+p20.c
+p21.c
+p22.c
+p23.c
+[vsk@student Activiy-1]$
+------------------------------------------------------------------------------
+grep
+----
+grep -option pattern inputFILE
+
+pattern: text(or)string
+Action: print (or) display
+
+awk
+---
+-> search a pattern from inputfile - formatted style result
+
+awk -option '/pattern/{action}' inputFILE
+     -F<sep>
+pattern: text(or)string
+Action: print (or) display
+
+step 1: read the input data from File - line by line - record
+step 2: split eachline into multiple columns(fields) - based on -F
+|
+step 3: search
+step 4: action
+
+File:IP.txt
+----------------
+101:userA:bash
+102:userB:ksh		
+103:userC:bash
+----------------
+awk -F: '/bash/{print}' IP.txt
+
+1 101:userA:bash
+-----------------
+2 102:userB:ksh
+-----------------
+3 103:userC:bash
+------------------
+NR $1   $2   $3(or)$NF
+1 101|userA|bash
+-----|-----|----
+2 102|userB|ksh
+-----|-----|-----
+3 103|userC|bash
+-----|-----|-----
+ |<------$0------>|
+
+OFS=<value>; <== outputfield sep.
+-----------------------------------------------------------------------------
+-> default input field sep & output field sep is space
+
+IP.txt
+--------
+101 userA bash
+102 userB ksh
+103 userC bash
+
+awk '/bash/{print NR,$1,$NF}' IP.txt 
+<== Note -F is ignored //space will be the default separator.
+
+1 101 bash
+3 103 bash	
+-------------------------------------------------------------------------------
+
+PIPE | 
+
+commandA |commandB
+  |		|    ^
+ o/p		i/p  |
+  |-------------|
+     ->-
+
+[vsk@student ~]$ ps
+  PID TTY          TIME CMD
+19089 pts/3    00:00:00 bash
+21094 pts/3    00:00:00 ps
+[vsk@student ~]$ ps|awk '{print $1,$NF}'
+PID CMD
+19089 bash
+21102 ps
+21103 awk
+[vsk@student ~]$ ps|awk '{OFS="\t";print $1,$NF}'
+PID     CMD
+19089   bash
+21116   ps
+21117   awk
+[vsk@student ~]$ ps|awk '{OFS="\t";print $NF,$1}'
+CMD     PID
+bash    19089
+ps      21149
+awk     21150
+[vsk@student ~]$ date
+Mon Jan 23 14:42:37 IST 2023
+[vsk@student ~]$ cat emp.csv
+101,raj,sales,pune,1000
+102,leo,prod,bglore,2000
+124,anu,HR,noida,1234
+455,xerox,hr,hyd,2400
+452,raj,prod,mumbai,1200
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+592,bibu,Hr,pune,2040
+[vsk@student ~]$ #
+[vsk@student ~]$ # /etc/passwd - search bash keyword
+[vsk@student ~]$ # display 1st colun and last column
+[vsk@student ~]$
+[vsk@student ~]$ awk -F, '{print $2,$4}' emp.csv
+raj pune
+leo bglore
+anu noida
+xerox hyd
+raj mumbai
+kumar bglore
+paul mumbai
+bibu pune
+[vsk@student ~]$ awk -F, '{OFS=":";print $2,$4}' emp.csv
+raj:pune
+leo:bglore
+anu:noida
+xerox:hyd
+raj:mumbai
+kumar:bglore
+paul:mumbai
+bibu:pune
+[vsk@student ~]$ grep bash /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+vsk:x:1000:1000:vsk:/home/vsk:/bin/bash
+[vsk@student ~]$
+[vsk@student ~]$ awk -F: '/bash/{print $1,$NF}' /etc/passwd
+root /bin/bash
+vsk /bin/bash
+[vsk@student ~]$ awk -F: '/bash/{OFS="\t";print $1,$NF}' /etc/passwd
+root    /bin/bash
+vsk     /bin/bash
+[vsk@student ~]$ awk -F: '/bash/{OFS="\t-\t";print $1,$NF}' /etc/passwd
+root    -       /bin/bash
+vsk     -       /bin/bash
+[vsk@student ~]$ awk -F: '/bash/{OFS="~";print $1,$NF}' /etc/passwd
+root~/bin/bash
+vsk~/bin/bash
+[vsk@student ~]$
+-------------------------------------------------------------------------------
+head
+tail
+more
+less
+----------//view content
+
+cat filename|head  - default print 10lines 
+
+
+cat filename|head -n N    <from top to bottom Nlines>
+
+cat filename|tail - default 10lines - <from bottom to top> //last 10lines
+
+cat filename|more 
+
+cat filename|less - page by page (Home End PageUp PageDown)
+		
+-----------------------------------------------------------------------------------
+cat,grep,awk,head,tail,more,less,wc //
+
+commandA|commandB|commandC|wc -l 
+			   -----
+			       |->int(total no.of lines)
+
+-----------------------------------------------------------------------------------
+Redirection
+------------
+
+command -->result
+	     |
+	 ---------
+	 |	  |
+	STDOUT  STDERR
+	FD=1     FD=2
+
+
+	>  - create & write
+	>> - append (won't overwrite existing data)
+
+command >resultfile
+	 ----------
+		|<== if result file is already exists, all the existing contents 
+		     are deleted.
+
+command >>resultfile
+	  ----------
+		|->append operation.
+
+
+command 1>resultfile 
+
+date >d1.txt --- same as -- date 1>d1.txt
+    				 |_FD value is 1
+
+command >result.log 2>err.log
+
+command >resultfile 2>&1
+------------------------------------------------------------------------------------
+process command
+---------------
+ps
+ps -e (or) ps -A  - list of all the process
+
+search any process (or) PID => ps -e|grep -i <processName>
+			       ps -e|grep <PID>
+
+ps -l 
+ps -el
+ps -f 
+
+ps -elf
+------------------------------------------------------------------------------------
+File Permission
+---------------
+File(F) - by 3 users - user(u);group(g);others(o)
+		       ----------------------------
+					| -> read(r) write(w)
+arun@host~]$ vi p1.txt			| -> execute(x)
+....
+....
+:wq
+p1.txt - user (or) owner is arun
+
+sales	HR
+-----   ---
+arun    paul
+anu	ram
+vijay	kumar
+leo		
+--------------------------------------------------------------------------
+
+chmod userdetails +  mode   filename(s)
+		  -  	 
+p1.txt  // Assing execute permission to user
+
+chmod u+x p1.txt
+ls -l p1.txt -> <fileType>rwxrw-r-- ....
+
+ls -l
+
+- <== Reg.file		c <== char type device		S <== socket file
+d <== Directory file    b <== block type device
+l <== link file		p <== named pipe
+
+chmod ug+x filename
+      ----
+	|<== user group both memeber can able to execute a file
+
+chmod ugo+x filename
+      ---
+chmod a+x filename  (or) chmod +x filename
+
+chmod a-x filename 
+      ---
+       |<== remove execute permission from all the users.
+
+r	w	x
+1	1	1	->  7
+1	1	0	->  6
+1	0	1	->  5
+1	0	0	->  4
+0	0	0	->  0
+
+chmod 754 filename
+      |||___r--
+      ||____r-x
+      |
+      |__rwx
+------------------------------------------------------------------------------------
+vi p1.txt
+echo "Current process details:-"
+ps
+sleep 3
+echo "Today:`date +%D`"
+sleep 2
+echo "About My working kernel name:`uname`  Version:`uname -r`"
+sleep 2
+echo "Thank you"
+:wq
+
+chmod a+x p1.txt
+ls -l p1.txt
+pwd
+/home/vsk
+/home/vsk/p1.txt {Enter}
+
+(or) ./p1.txt
+-----------------------------------------------------------------------------------
+create a new file
+-> write your login name	- whoami
+-> total no.of process count	- ps -e|wc -l
+-> current working directory	- pwd
+--------------------------------
+ |->execute - redirect result to external file.
+-----------------------------------------------------------------------------------
+Shell Script
+-----========
+	|->program
+	
+	| variable
+	       1. User Defined Variable(UDV)
+	       2. SHELL variable
+	       3. commandline argument
+	       4. array
+	| Operators
+	       1. arithmetic
+	       2. relational
+	       3. logical    
+	       4. file test
+	| Conditional statements
+	       1. if style   -> if only  if..else  if..elif
+	       2. case style
+	
+	| Looping statements
+	       1. conditional style 
+	       2. collection style
+	| Function 
+----------------------------------------------------------------------------
+-> shell script file extension .sh (optional)
+-> file must be executable file
+-> #!/bin/bash <== hashbang (or) sha-bang
+
+-> # single line comment
+-> <<Abc
+   ....
+   .... multiline comment
+   ....
+   Abc 	
+
+userA@host1~]$ echo $0
+-bash
+userA@host1~]$ vi p1.sh
+echo "OK-1"
+...
+...
+echo "End of the script"
+:wq
+userA@host1~]$ chmod a+x p1.sh
+userA@host1~]$ ./p1.sh
+OK-1
+...//success
+End of the script
+userA@host1~]$ 
+-----
+ |------------------------------------------userB@host2~]$ echo $0
+					    csh
+					    userB@host2~]$ ./p1.sh {Enter}
+					    OK-1
+					    .....//Error
+					    End of the script
+					    userB@host2~]$
+
+
+userA@host1~]$ vi p2.sh {Enter}
+#!/bin/bash
+...
+...
+:wq
+userA@host1~]$  chmod a+x p2.sh {Enter}
+					 userB@host2~]$ echo $0
+					 csh
+					 userB@host2~]$ ./p2.sh <= by csh
+					 |
+					csh - parent (wait)
+					 |__bash - child (R+)
+					      |__.....//execute by bash
+
+---------------------------------------------------------------------------------
+variable
+--------
+  -> namespace (or) placeholder - holding a value
+  |
+  -> Syntax:-
+     -------
+     variablename=value
+     ------------
+Rule 1: variable name starts with a-zA-Z_ (not starts with digits)
+Rule 2: variable name not allows space,specialchars
+Rule 3: There is no space in = LHS,RHS
+  
+Fname="emp.csv"
+Findex=1345
+Fsize="5KB"
+Futil=9.84
+cmd="date"
+cmd_result=`date` 
+
+echo $variable (or) ${variable}
+-----------------------------------------------------------------
+initialize app_name app_port app_service - individual variables(User Defined)
+(ex: testApp 1234 testApp1.service
+     flask 5000 httpd.service
+     ...)
+- using echo command - display app details to monitor.
+Note: use single echo command
+
+app_name="TestApp"
+app_port=1234
+app_service="testApp1.service"
+
+echo "App name is:${app_name}
+--------------------------------------------------
+${app_name} running port number is:${app_port}
+--------------------------------------------------
+${app_name} running service name is:{app_service}
+---------------------------------------------------"
+
+-----------------------------------------------------------------
+
+
+
+		    read
+Keyboard(<STDIN>)-----<-------shellscript----------echo--->---Monitor(STDOUT)
+
+read UDV
+echo ${UDV}
+
+read -p "prompt message:"<space>UDV
+	|--- stdout-----|       |__ <STDIN>
+
+
+
+
+
+[root@student Temp]# cat -n p2.sh
+     1  app_name="TestApp"
+     2  app_port=1234
+     3  app_service="testApp1.service"
+     4
+     5  echo "App name is:${app_name}
+     6  --------------------------------------------------
+     7  ${app_name} running port number is:${app_port}
+     8  --------------------------------------------------
+     9  ${app_name} running service name is:${app_service}
+    10  ---------------------------------------------------"
+[root@student Temp]# clear
+[root@student Temp]#
+[root@student Temp]# echo Hello
+Hello
+[root@student Temp]# read var
+45
+[root@student Temp]# echo $var
+45
+[root@student Temp]# read var
+asfasfasd
+[root@student Temp]# echo $var
+asfasfasd
+[root@student Temp]# read var
+10.20.30.40
+[root@student Temp]# echo $var
+10.20.30.40
+[root@student Temp]#
+[root@student Temp]# vi p3.sh
+[root@student Temp]# chmod a+x p3.sh
+[root@student Temp]#
+[root@student Temp]# cat -n p3.sh
+     1  read -p "Enter your App name:" app_name
+     2  read -p "Enter ${app_name} app port number:" app_port
+     3  read -p "Enter ${app_name} service name:" app_service
+     4
+     5  echo "App name is:${app_name}
+     6  --------------------------------------------------
+     7  ${app_name} running port number is:${app_port}
+     8  --------------------------------------------------
+     9  ${app_name} running service name is:${app_service}
+    10  ---------------------------------------------------"
+[root@student Temp]# ./p3.sh
+Enter your App name:Flask
+Enter Flask app port number:5000
+Enter Flask service name:httpd
+App name is:Flask
+--------------------------------------------------
+Flask running port number is:5000
+--------------------------------------------------
+Flask running service name is:httpd
+---------------------------------------------------
+[root@student Temp]# ./p3.sh
+Enter your App name:OLA
+Enter OLA app port number:4345
+Enter OLA service name:test1
+App name is:OLA
+--------------------------------------------------
+OLA running port number is:4345
+--------------------------------------------------
+OLA running service name is:test1
+---------------------------------------------------
+[root@student Temp]# ./p3.sh
+Enter your App name:demoA
+Enter demoA app port number:43434
+Enter demoA service name:demoA.service
+App name is:demoA
+--------------------------------------------------
+demoA running port number is:43434
+--------------------------------------------------
+demoA running service name is:demoA.service
+---------------------------------------------------
+[root@student Temp]#
+===================================================================================
