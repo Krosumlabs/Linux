@@ -1,0 +1,693 @@
+Refer: 
+https://www.youtube.com/watch?v=9i_UrXrRwE8&list=PL2BxEIMrSAbn98CSZv1obkuQiElxadoDu&ab_channel=krosumlabs
+
+Email : abpalanikarthik@gmail.com
+-----------------------------------------------------------
+regular expression
+- search
+- substitute
+
+function
+---------------------------------------------------------------------------
+grep  - search only
+----- 
+grep -option pattern inputfile
+
+pattern: text (or) string
+action: print (or) display matched pattern lines
+
+awk  - search & format
+---
+awk -option '/pattern/{action}' inputfile
+
+pattern: text(or)string
+action: print - print is a command 
+
+sed - search & substitute 
+---
+sed -option 'patternAction' inputfile
+pattern:
+---------
+	1. Line number (or) address
+	2. text (or) string
+Action: print(p) write(w) delete(d)  substitute(s) insert(i) append(a)
+	change(c) execute(e)
+
+read - read the data from <FILE> (or) PIPE - line by line
+|
+stores - stores data on the buffer(pattern buffer)
+|
+execute - execute sed command on the buffer
+|
+display - display sed results to monitor //then buffer will be empty
+
+LineNumber based filter
+------------------------- 
+pattern is line number(n)
+
+print(p)
+--------
+sed -n 'Np' inputfile
+	|
+	|__Nth line 
+
+sed -n 'N,Mp' inputfile
+	---
+	 |__ from Nth line into Mth line //range
+
+sed -n -e 'Np' -e 'Mp' inputfile =>print Nth line and Mth line
+
+sed -n '3p' IP.txt => print 3rd line content from IP.txt file
+
+sed -n '3,5p' IP.txt =>print from 3rd line to 5th line content from IP.txt file
+
+sed -n -e '3p' -e '5p' IP.txt =>print 3rd line and 5th line content from IP.txt file
+
+[root@student Temp]# cat -n emp.csv
+     1  101,raj,sales,pune,1000
+     2  102,leo,prod,bglore,2000
+     3  124,anu,HR,noida,1234
+     4  455,xerox,hr,hyd,2400
+     5  452,raj,prod,mumbai,1200
+     6  194,kumar,sales,bglore,2340
+     7  442,paul,sales,mumbai,4891
+     8  592,bibu,Hr,pune,2040
+[root@student Temp]#
+[root@student Temp]# cat -n emp.csv |sed -n '3p'
+     3  124,anu,HR,noida,1234
+[root@student Temp]# cat -n emp.csv |sed -n '3,5p'
+     3  124,anu,HR,noida,1234
+     4  455,xerox,hr,hyd,2400
+     5  452,raj,prod,mumbai,1200
+
+[root@student Temp]# cat -n emp.csv |sed -n -e '3p' -e '5p'
+     3  124,anu,HR,noida,1234
+     5  452,raj,prod,mumbai,1200
+
+[root@student Temp]# ps -e|sed -n '15,20p'
+   16 ?        00:00:00 perf
+   17 ?        00:00:00 khungtaskd
+   18 ?        00:00:00 writeback
+   19 ?        00:00:00 ksmd
+   20 ?        00:00:00 khugepaged
+   21 ?        00:00:00 crypto
+[root@student Temp]#
+[root@student Temp]# ps -e|sed -n '1p'
+  PID TTY          TIME CMD
+[root@student Temp]# ps -e|sed -n '1,2p'
+  PID TTY          TIME CMD
+    1 ?        00:00:02 systemd
+[root@student Temp]# ps -e|sed -n '2p'
+    1 ?        00:00:02 systemd
+[root@student Temp]#
+ 
+ $ ->Last line number
+
+print last line content from /etc/passwd file
+sed -n '$p' /etc/passwd
+=================================================================================
+write(w)
+---------
+sed -n '3p' IP.txt >r1.txt 
+
+sed -n 'Nw<space>resultfile' IP.txt
+write 3rd line content from IP.txt
+sed -n '3w r1.txt' IP.txt
+        
+How to write 3rd line to 5th line content from IP.txt?
+             ----------------------------
+sed -n '3,5w r2.txt' IP.txt
+
+write 3rd line content to three.txt file 5th line content write five.txt file
+
+sed -n -e '3w three.txt' -e '5w five.txt' IP.txt
+-------------------------------------------------------------------------------
+delete(d)
+----------
+ opp.print action
+
+ sed 'Nd' filename 
+ sed 'N,Md' filename
+ sed -e 'Nd' -e 'Md' filename
+ 
+cat IP.txt
+----Header------
+data1
+data2
+data3
+-----Footer------
+
+sed -e '1d' -e '$d' IP.txt
+data1
+data2
+data3
+------------------------------------------------------------------------------
+insert(i)
+
+inserting new text on the nth line
+
+sed 'Ni <newText>' filename
+sed 'N,Mi <newText>' filename
+sed -e 'Ni <newText>' -e 'Mi <newText>' filename
+
+append(a)
+appending new text on the nth line
+sed 'Na <newText>' filename
+sed 'N,Ma <newText>' filename
+sed -e 'Na <newText>' -e 'Ma <newText>' filename
+
+
+
+
+[root@student Temp]# cat IP.txt
+data1
+data2
+data3
+[root@student Temp]# sed -n '2p' IP.txt
+data2
+[root@student Temp]# sed -n '2w r1.txt' IP.txt
+[root@student Temp]#
+[root@student Temp]# sed '2d' IP.txt
+data1
+data3
+[root@student Temp]# sed '2i NEWDATA' IP.txt
+data1
+NEWDATA
+data2
+data3
+[root@student Temp]# sed '2a NEWDATA' IP.txt
+data1
+data2
+NEWDATA
+data3
+[root@student Temp]# ps|sed -e '1i ---------' -e '$a ------------'
+---------
+  PID TTY          TIME CMD
+ 1248 pts/0    00:00:00 bash
+ 4580 pts/0    00:00:00 ps
+ 4581 pts/0    00:00:00 sed
+------------
+[root@student Temp]# ps|sed -e '1i ---------' -e '1a ------------' -e '$a -------------'
+---------
+  PID TTY          TIME CMD
+------------
+ 1248 pts/0    00:00:00 bash
+ 4611 pts/0    00:00:00 ps
+ 4612 pts/0    00:00:00 sed
+-------------
+[root@student Temp]#
+----------------------------------------------------------------------------
+change(c)
+sed 'Nc <replaceNewText>' filename
+
+sed 'N,Mc <replaceNewText>' filename
+
+sed -e 'Nc <replacenew text1>' -e 'Mc <replacenewText2>' filename
+----------------------------------------------------------------------------
+execute(e)
+----------
+ - execute shell commands
+
+[root@student Temp]# cat IP
+date
+ps -f
+sleep 5
+pwd
+[root@student Temp]# sed 'e' IP
+Wed Jan 25 10:21:50 IST 2023
+UID        PID  PPID  C STIME TTY          TIME CMD
+root      1248  1236  0 09:07 pts/0    00:00:00 -bash
+root      5230  1248  0 10:21 pts/0    00:00:00 sed e IP
+root      5232  5230  0 10:21 pts/0    00:00:00 ps -f
+
+/root/Temp
+[root@student Temp]#
+[root@student Temp]# sed -e 'e' -ne 'w r1.txt' IP
+[root@student Temp]#
+[root@student Temp]# cat r1.txt
+Wed Jan 25 10:22:34 IST 2023
+UID        PID  PPID  C STIME TTY          TIME CMD
+root      1248  1236  0 09:07 pts/0    00:00:00 -bash
+root      5271  1248  0 10:22 pts/0    00:00:00 sed -e e -ne w r1.txt IP
+root      5273  5271  0 10:22 pts/0    00:00:00 ps -f
+
+/root/Temp
+[root@student Temp]#
+-----------------------------------------------------------------------------------
+LineNumber -> NAction
+|
+Text(or)String -> /text/Action
+
+print 3rd line content	=> sed -n '3p' filename
+print sales details  => sed -n '/sales/p' filename - like grep,awk
+
+delete 3rd line content => sed '3d' filename
+delete sales details => sed '/sales/d' filename - like grep -v sales filename
+
+sed -n '3p' filename   Vs sed -n '/3/p' filename
+-------------------	  =======================
+ |->print 3rd line 	     |=> like grep 3 filename
+    content
+
+How to insert following line content after 3rd line ?
+  555,userA,DBA,Bangalore,1000
+# sed '3a 555,userA,DBA,Bangalore,1000' filename 
+
+How to insert straight line after every sales pattern ?
+
+# sed '/sales/a -----------------' filename  		
+
+
+[root@student Temp]# cat emp.csv |sed '3a 555,userA,DBA,Bangalore,1000'
+101,raj,sales,pune,1000
+102,leo,prod,bglore,2000
+124,anu,HR,noida,1234
+555,userA,DBA,Bangalore,1000
+455,xerox,hr,hyd,2400
+452,raj,prod,mumbai,1200
+194,kumar,sales,bglore,2340
+442,paul,sales,mumbai,4891
+592,bibu,Hr,pune,2040
+[root@student Temp]# cat emp.csv |sed '/sales/a ------------------'
+101,raj,sales,pune,1000
+------------------
+102,leo,prod,bglore,2000
+124,anu,HR,noida,1234
+455,xerox,hr,hyd,2400
+452,raj,prod,mumbai,1200
+194,kumar,sales,bglore,2340
+------------------
+442,paul,sales,mumbai,4891
+------------------
+592,bibu,Hr,pune,2040
+[root@student Temp]#
+----------------------------------------------------------------------------------
+substitute(s)
+--------------
+sed 's/oldPattern/replacestring/' filename
+
+search the old pattern ->replace new string if oldpattern is exists
+			
+if oldpattern is not exists ->print original string
+
+echo "101,raj,sales,pune,1000"|sed 's/sales/production/' 
+101,raj,production,pune,1000
+
+echo "101,raj,sales,pune,1000"|sed 's/QA/production/' 
+101,raj,sales,pune,1000
+
+
+echo "101,raj,sales,pune,1000"|sed 's/sales/production/' 
+101,raj,production,pune,1000
+		Vs
+echo "101,raj,sales,pune,1000"|sed '/sales/c production'
+production
+-----------------------------------------------------------------------------
+sed 's/sales/****/' emp.csv
+
+
+sed '2s/sales/****/ig' IP1
+     |
+    LineNumber(2nd line) ->sales ->****
+			   (ignorecase)
+----------------------------------------------------------------------------
+Regular Expression
+-------------------
+  |->search & substitute
+	|	|
+	grep	sed 
+	sed
+	awk
+
+|->search a pattern
+	    --------
+		|->text,char,digits,space,specialchars etc.,
+File: ab.txt
+---------------------------------
+userA,sales,pune
+sales,userB,bglore
+sales,
+sales
+userC,sales
+sales<space>
+<space>,userD,sales
+-----------------------------
+grep sales ab.txt ==> awk '/sales/{print}' ab.txt ==> sed -n '/sales/p' ab.txt
+
+1.BasicRegularExpression(BRE) - single pattern search
+------------------------------
+^
+$
+^pattern$
+.
+.*
+[ ]
+^[ ]
+[^ ]
+[  ]$
+^$
+2. Extended Regular Expression (ERE) - more than one pattern search
+------------------------------------
+| ()  +  {}
+
+-------------------------------------------------------------------------------
+BRE
+----
+^  => ^pattern ->line starts with pattern 
+
+$  => pattern$ ->line ends with pattern
+
+^pattern$ ==>pattern only 
+.(dot)  => match any single character except \n
+		 --------------------
+		  |->A-Za-z0-9space specialchars
+
+.* -> list of all
+
+character based search []
+----------------------
+ [Aa]run -> Arun arun //matched 
+  
+grep s emp.csv
+
+grep a emp.csv
+
+grep as emp.csv			Vs	grep  [as] emp.csv
+     --					       ||
+     |___ word 'as'			       char 'a' char 's'
+
+ps -e|grep [sd]$
+
+[Aav][rR]un
+-------------
+Arun ARun arun aRun vrun vRun
+
+[abcde][45]xy
+ -----  == ---
+a4x
+a5x
+a4y
+a5y
+b4x
+[a-z] ->any single lower case chars 
+[A-Z] ->any single uppercase chars 
+[a-zA-Z] ->any alpha 
+[0-9] -> any digits
+[a-zA-Z0-9] -> alpha number
+
+grep "^[A-Za-z].*[0-9]$" IP
+
+Aasdfasfsdf34234@#$#@$#@  fsasasadfsad5 //matched 
+
+[At5] ->any where 'A' 't' '5' //matched
+
+^[At5] ->line starts with 'A' 't' '5' //matched 
+
+[At5]$ ->line ends with 'A' 't' '5' //matched
+
+[^At5] => NOT Matched 'A' 't' '5'
+
+[^a-z] => NOT Matched any lower case chars 
+[^a-zA-Z] =>NOT Matched any alpha 
+
+[^a-zA-Z0-9]=>NOT Matched any alpha number //matched with space,specialchars 
+
+character class				posix-class
+[a-z]					[[:lower:]] 
+[A-Z]					[[:upper:]]
+[a-zA-Z]				[[:alpha:]]
+[0-9]					[[:digit:]]
+[a-zA-Z0-9]				[[:alnum:]]
+' '					[[:space:]]
+[^a-zA-Z0-9' ']				[[:punct:]]
+
+ ^$  -->empty line 
+
+ERE  -> grep -E  ; sed -r 
+----
+| () + {}
+
+grep -E  "^[a-z]|^[A-Z]|[a-z]$" IP
+	  ------  -----  ------
+
+grep  "^[a-zA-Z].*[0-9]$" IP
+grep  "[[:space:]]$" IP
+
+grep -E "^[a-zA-Z].*[0-9]$|[[:space:]]$" IP
+	 ----------------- ------------
+		P1		P2  //anyone pattern is matched ->True
+
+(pattern1) (pattern2) //both pattern should matched same order 
+
+echo "shell supports for and while loops"|grep -E "(for)(while)" ->not matched
+
+(for)(while) ->forwhile 
+
+echo "shell supports for and while loops"|grep -E "(for).*(while)" ->matched
+for<anytext>while //
+
+<pattern>+  <== 1 or more times 
+
+ab+c => abc abbbbbbbbbbbbbbbbc //matched 
+
+^[[:space:]][0-9]+[a-z]$
+	    ------
+		|->1 or more digits 
+
+{}
+==
+  <pattern>{n}  -> n times
+
+  ab{2}c ->abbc //matched   ; abc //notmatched 
+
+ [0-9]{20}
+
+   <pattern>{n,} -> minimum 'n' times maximum nolimit
+
+	ab{2,}c ->abbc abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbc //matched
+
+ab+c  same as  ab{1,}c 
+
+   <pattern>{n,m} ->minimum 'n' times maximum 'm' times
+ab{2,4}c  abbc abbbc abbbbc //matched
+------------------------------------------------------------------------------
+Write a shell script
+- modify pin example
+  |
+  test your input number 
+  - matched -> SUCCESS - pin is matched - at count - inputpin entry date/time 
+		  				 - append to FILE(pin_history.log)
+	|
+	NOT-matched - FAILED - pin (user input) is not matched pin entry(date/time)
+						- append to FILE(pin_history.log)
+ 
+  - 3 inputs are failed => pin is blocked - update date/time to pin_history.log
+
+---
+in commandline -> 
+Count How many failed inputs (or) success inputs from pin_history.log file
+						      ----------------
+---
+------------------------------------------------------------------------------------
+sed 's/<old>/<replace>/' inputfile
+
+echo "101,raj,sales,pune"|sed 's/sales/***/' 
+101,raj,***,pune
+
+echo "101,raj,sales,pune"|sed 's/sales//'
+101,raj,,pune			      |__target string(pattern) is empty
+
+			
+echo "101,raj,sales,pune"|sed 's/sales.//'
+				 -----|_<anyonechar>
+101,raj,pune
+-------------
+S=(150GB 50G 120gb G110 140) 
+Calculate sum of the array(size)
+
+
+[root@student Temp]# echo "150GB 100gb"|sed 's/[A-Za-z]//'
+150B 100gb
+[root@student Temp]#
+[root@student Temp]# echo "150GB 100gb"|sed 's/[A-Za-z]//g'
+150 100
+[root@student Temp]#
+
+t=0
+for v in ${S[@]}
+do
+	r=`echo $v|sed 's/[A-Za-z]//g'`
+	t=`expr $t + $r`
+done
+echo "Sum of ${S[@]} size is:$t GB"
+=============================================================================
+floating point operation
+--------------------------
+1. bc tool  
+
+root@host~]# bc {Enter}
+bc
+10.45+10.23
+
+10.42*0.02
+
+press ctrl+C - Exit
+
+2. awk - filter
+   ---
+
+Write a shell script
+- read a student name
+- read a student 3 subject marks from <STDIN> //array  read -a ....
+|
+- calculate sum of 3 subjects
+|
+- avg of 3 subjects //awk
+|
+- echo - display student details
+	name,each subject name and mark,total,avg of 3 subjects 
+-----------------------------------------------------------------------------
+Function
+--------
+ ->Code block (or) sub-script
+ |
+ ->Code reusability
+ |
+ ->function definition //action block
+ |
+ ->function call - to invoke a definition
+
+Syntax:-
+--------
+function functionName()
+{
+	code block
+}
+function -keyword (optional)
+
+How to invoke a function definition ?
+functionName
+
+
+f1(){
+	echo "This is $FUNCNAME Block"
+	echo ${1} ${2}
+	echo $@
+	echo $#
+	echo "Exit from $FUNCNAME Block"
+}
+f2(){
+	echo "This is $FUNCNAME Block"
+	echo ${1} ${2}
+	echo $@
+	echo $#
+	echo "Exit from $FUNCNAME Block"
+}
+echo "Total no.of commandline args:$#"
+f1 p1.sh p2.sh p3.sh p4.sh
+f2 10 20 30 40 50 60 70 80
+echo ${1} ${2} ${3}
+echo $#
+------------------
+./p1.sh A B C	
+
+=========================================================================
+file: ab.sh					file: p1.sh
+-------------					-------------
+display(){					source /home/userA/project/ab.sh
+	uname -rs				display
+	whoami					echo ${port}
+	echo "Login ID:$UID"			--------------
+	echo "Hostname:`hostname`"		chmod a+x p1.sh
+}						./p1.sh
+app="httpd"					Linux 4.2...
+port=80						userA
+---------------					1001
+chmod a+x ab.sh					example
+./ab.sh						80
+						----
+--
+[root@student Temp]# cat p51.sh
+display(){
+        echo "Kernel name:`uname`"
+        echo "`uname` version:`uname -r`"
+        echo "Hostname:`hostname`"
+        echo "Exit from $FUNCNAME Block"
+}
+[root@student Temp]# ./p51.sh
+[root@student Temp]#
+[root@student Temp]# source /root/Temp/p51.sh
+[root@student Temp]# display
+Kernel name:Linux
+Linux version:4.1.12-94.3.9.el7uek.x86_64
+Hostname:student
+Exit from display Block
+[root@student Temp]#
+[root@student Temp]# . /root/Temp/p51.sh
+[root@student Temp]# display
+Kernel name:Linux
+Linux version:4.1.12-94.3.9.el7uek.x86_64
+Hostname:student
+Exit from display Block
+[root@student Temp]#
+
+[root@student Temp]# . ./p51.sh
+[root@student Temp]#
+[root@student Temp]# display
+Kernel name:Linux
+Linux version:4.1.12-94.3.9.el7uek.x86_64
+Hostname:student
+Exit from display Block
+[root@student Temp]#
+------------------------------------------------------------------------------------
+[root@student Temp]# date +%D-%H-%M
+01/25/23-16-59
+[root@student Temp]# date +%D-%H:%M
+01/25/23-16:59
+[root@student Temp]#
+[root@student Temp]# date +%D-%H:%M
+01/25/23-17:00
+[root@student Temp]# d
+-bash: d: command not found
+[root@student Temp]#
+[root@student Temp]# alias d='date +%D-%H:%H'
+[root@student Temp]# d
+01/25/23-17:17
+[root@student Temp]#
+
+---------------------------------------------------------------
+	
+	Login:_______
+	Passwd:________
+	|
+	shell(CLI)   
+
+
+Login as:
+passwd: 
+	|
+	shell - read & execute /etc/profile file
+			       ------------ 
+	username@host~]$ .....
+
+Login: root                          Login: anu         Login: Leo
+password:			     password:          passwd:
+
+root@host~]# ls -a	            anu@host~]$ ls -a   Leo@host~]$ ls -a
+
+.bashrc				    .bashrc		.bashrc
+
+				    anu@host~]$ vi .bashrc
+
+				    alias d='date +%D-%H:%M'
+				    export DB="/usr/bin/oracle"
+				    display(){
+					 uname -rs
+					 hostname
+					 ip a
+				    }
+				    export -f display
+				    :wq 
+				     |
+				    anu@host~]$ bash 
+				    anu@host~]$ ------------------------------------------------------------------------------
