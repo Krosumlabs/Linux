@@ -1,0 +1,434 @@
+systemcall()=FD
+
+FD(file descriptor)
+
+FD ->0 <STDIN>  - keyboard
+FD ->1 STDOUT } - monitor
+FD ->2 STDERR } - monitor
+
+FD -> 0x1234 - memory
+
+FD -> 3 to 2 pow 32/64 ->Valid Call
+
+FD -> -1 //FailedCall 
+
+strace <command>
+
+date -> Fri Jan 27 09:41:47 IST 2023
+write(1,"Fri Jan 27 09:42:10 IST 2023\n",29Fri Jan 27 09:42:10 IST 2023)=29
+
+uname ->Linux
+write(1,"Linux\n",Linux)=7 <===
+
+/etc/passwd
+Permission Denied 
+write(2,"Permission Denied",Permission Denied)=20 <==
+---------------------------------------------------------------------------------
+
+   User Level 				//Application (or) command
+
+  /proc	         /		/mnt    /media    /D1     .. <== User Level
+  ___________________________________________________________________
+  systemcall
+  |
+  ----------------------------------------------------------------
+   proc     ext4/xfs/btrfs     vfat    is9660     nfs     ocfs2  .. } VFS
+   |		|		|	|	   |	   |
+   DD		DD		DD	DD	   DD	  DD
+   |		|		|	|	   |	  |
+   |____________________DC(Device Ctrler)_________________|
+			|
+   ---------------------|---------------------------------------- 
+   CPU,RAM    HD             ntk(winx-HD) USB/CDROM NIC   ... // H/W
+
+
+cat /proc/filesystems
+
+df -Th
+---------------------------------------------------------------------------
+root@host~]# cp p1.txt p2.txt		- HardDisk
+	     cp p1.txt /tmp/p2.txt	- HardDisk
+	     |
+	     cp /mnt/USB/p1.txt ~/p3.txt  - USB <==> HardDisk
+	     |
+	     scp p1.txt  <remoteIP>:/root/p2.txt  HardDisk->network->remote ->HD
+	    ------------------------------------------
+open()
+read()
+write()
+close()
+|
+USB - Device - iso9660  --- xfs   nfs4 
+
+struct boot_block{
+	struct super_block{
+		struct inode1{}
+		struct inode2{}
+		..
+		struct inodeN{}
+	};
+};
+
+ls 
+ls -i
+p1.txt 1001
+p2.txt 1002
+p3.txt 1003
+	
+	SB
+    +-----------+
+    | 1001 				  1001 
+    | 1002				+----------------+
+    | 1003				| 1001 file info |
+    +-----------+			+----------------+
+
+					  1002
+					+-----------------+
+					| 1002 file info  |
+					+-----------------+
+
+					 1003
+					+------------------+
+					| 1003  file info  |
+					+------------------+
+
+stat <fileName>
+
+	FileDescriptor		FileTable
+	--------------		----------
+	  0
+	  1
+	  2
+ 	  3 ---------------------<permission> //GlobalStructure
+	  4 -			  |_RC - update 
+	  5 -			     |__*vptr --->inode
+
+userA@host~]$ cat /etc/shadow {Enter}
+Permission Denied 
+userA@host~]$ mkdir /D1 {Enter}
+Permission Denied
+
+userA@host~]$ cat pp.log {Enter}
+No such file 
+
+
+userA@host~]$ vi p1.txt
+1234
+5678
+:wq
+userA@host~]$ mkdir D1
+userA@host~]$ cd D1
+userA@host D1]$ vi p1.txt
+Hello
+:wq
+userA@host D1]$ cat p1.txt
+Hello
+userA@host D1]$ cat ../p1.txt
+1234
+5678
+userA@host D1]$ cat /home/userA/p1.txt
+1234
+5678
+userA@host D1]$ cat /home/userA/D1/p1.txt
+Hello
+
+		+-----------------------+
+		|    Index		|
+		+-----------------------+
+		|  Intro about Linux| 1 |	1-14 
+		|___________________|___|
+		| Filesystem        | 15|	15-28
+		| Processmanagement | 29|	29-119
+		| Memory management |120|	120-232
+		| Device management |233|	233-END
+		+-----------------------+	
+		   FILENAME	    INODE
+
+#include<unistd.h>
+----------------------------------------------------------------
+int fd1,fd2;
+
+fd1=3;
+fd2=fd1;
+---
+|->3
+
+newFD=dup(oldFD);
+-----		
+fd2=dup(fd1)
+---	 |---->3
+|
+|-->4
+	fd1=open("IP.txt",O_RDONLY);
+	read(fd1,buf1,2); # buf1 - 'ab'
+	fd2=open("IP.txt",O_RDONLY);
+	read(fd2,buf2,2); # buf2 - 'ab'
+		 Vs
+	fd1=open("IP.txt",O_RDONLY);
+	read(fd1,buf1,2);  # buf1 - 'ab'
+	read(fd1,buf2,2);  # buf2 - 'cd'
+		Vs
+	fd1=open("IP.txt",O_RDONLY);
+	read(fd1,buf1,2);  # buf1 - 'ab'
+	fd2=dup(fd1);				//dup2(oldFD,newFD);
+	read(fd2,buf2,2);  # buf2 - 'cd'
+	
+	fd=open(Filename,O_RDONLY);
+	read(fd,buf,65536);
+	close(fd);
+	----------------------------//
+
+	fd=creat(Filename,O_WRONLY);
+		 --------
+		 |<== filename must be new; if file already exists - overwrite	
+	|
+	write(fd,buf,<size of chars>);
+	..
+	|
+	close(fd); <==
+	|
+	chmod(Filename,0664); <==
+
+
+open("IP2.txt",O_CREAT|O_RDWR|0644)  Vs open("IP2.txt",O_CREAT|O_APPEND|0644)
+-----------------------------------     -------------------------------------
+#include<sys/stat.h>  <===(1)
+
+struct stat sv; <===(2) # sv (struct variable) //user defined.
+
+fd=open("/etc/passwd",O_RDONLY); <--(3)
+
+fstat(fd,&sv); <===(4)
+
+printf("inode=%d\n",sv.st_ino);  //ls -i /etc/passwd 
+
+--------------------------------------------------------------
+
+#include "ab.h"
+
+int main(){
+	int fd1,fd2;
+	struct stat sv1,sv2;
+	fd1=open("/etc/passwd",O_RDONLY);
+	fd2=open("/var/log/message",O_RDONLY);
+	fstat(fd1,&sv1);
+	fstat(fd2,&sv2);
+	printf("file /etc/passwd index number:%d\n",sv1.st_ino);
+	printf("file /var/log/message index number:%d\n",sv2.st_ino);
+}
+-----------------------------------------------------------------------------
+file:IP.txt - inode:1001 permission:rw-r--r-- filesize:5KB
+
+cp IP.txt IP1.txt
+--
+	  IP1.txt - inode:1002	permission:rw-r--r-- filesize:5KB
+
+vi IP.txt
+add some text
+:wq
+cat IP1.txt
+---------------------
+ln IP.txt IP2.txt
+
+cat IP.txt
+data1
+data2
+cat IP2.txt
+data1
+data2
+vi IP.txt
+data1
+data2
+data3 <==
+:wq
+cat IP2.txt
+data1
+data2
+data3	<==
+
+ls -l IP.txt
+<permission> 2
+ls -i IP.txt IP2.txt
+1001 1001
+rm IP.txt
+cat IP2.txt <== we can access target file
+data1
+data2
+data3
+-----------------------------------------------------------------------------------
+symlink(source,target) # ln -s source target
+
+link(source,target) # ln source target
+
+cp file1 file2	Vs   ln file1 file2 (Hardlink)   ln -s F1 F2 (Softlink)
+	 -----		      -----			  ---
+	  |			|_newFile(must be newFile)__|
+	 <oldfile>
+	 - overwrite
+-----------------------------------------------------------------------------------
+system("date");
+system("date +%D");
+system("ps -e|wc -l");
+system("ps;date;sleep 3;pwd");
+----------------------------------------------------------------------------------
+mkdir(<dirname>)
+chdir(<dirname>)
+listdir(<dirname>)
+rmdir(<dirname>)
+----------------------------------------------------------------------------------
+open
+read
+write
+creat
+dup() / dup2()
+fstat()
+...
+system()
+perror()
+chmod()
+..
+-----------------------------------------------------------------------------------
+process
+-------
+ ->Data Under the CPU
+		  ----
+		   ->fetch the data from <Memory>
+		   ->stores to REgister
+		   ->execute data //Process
+
+			ps
+			|
+ --------------------------------------------------------------
+ |							       |
+1.User process						2.System process
+by user							by systemd
+TTY:pts/port						TTY: ?
+Parent is: working shell				Parent is: systemd
+|							|
+Start ->R+ ..Exit					while os booting time
+	||   -----					|
+	Stopped						session leader(SID)
+
+P1  P2   P3    P4    P5   P6   P7   P8   P9   P10
+|    |   |     |     |     |   |    |    |    |
+101 102  103  104   105   106 107   108  109 110 <== PID
+
+process group - 1 or more process
+-------------
+P1 P2 P3    P4 P5   P6  P7     P8 P9 P10
+---------   -----   ------     ----------
+PGID:101    PGID:104  PGID:106  PGID:108 
+
+session - process group leaders
+-------
+P1  P4  P6  P8
+--------------//session(SID:101)
+PID  PGID SID
+101  101  101
+104  104  101c
+
+echo $$  ------------ getpid() -<int>
+echo $PPID ---------  getppid()-<int>
+
+file: ab.c
+------------
+#include "ab.h"
+int main(){
+	printf("Running Process PID:%d  Parent PID:%d\n",getpid(),getppid());
+	return 0;
+}
+----------------------------------------------------------
+     1  #include "ab.h"
+     2  int main(){
+     3         printf("Running Process PID:%d  Parent PID:%d\n",getpid(),getppid());
+     4         system("sleep 50 &");
+     5         system("ps -f");
+     6         return 0;
+     7  }
+[vsk@student ~]$ ./p8
+Running Process PID:20898  Parent PID:17807
+UID        PID  PPID  C STIME TTY          TIME CMD
+vsk      17807 17806  0 14:24 pts/4    00:00:00 -bash
+vsk      20898 17807  0 15:25 pts/4    00:00:00 ./p8
+vsk      20900     1  0 15:25 pts/4    00:00:00 sh -c sleep 50 &
+vsk      20901 20898  0 15:25 pts/4    00:00:00 ps -f
+[vsk@student ~]$ ps -f
+UID        PID  PPID  C STIME TTY          TIME CMD
+vsk      17807 17806  0 14:24 pts/4    00:00:00 -bash
+vsk      20900     1  0 15:25 pts/4    00:00:00 sleep 50
+vsk      20918 17807  0 15:25 pts/4    00:00:00 ps -f
+[vsk@student ~]$
+--------------------------------------------------------------------------------
+					    |-->R+
+P1 (PID: 101    Address:0x1234   Pstate:R+) |
+|//parent				|__Wait--<------
+|						       |
+P2 (PID:102  PPID:101  Address:0x555 Pstate:R+ ---->-----
+//child					    |__ //Exit 
+
+
+
+   P1 -Wait  <== Killed 
+   |
+   P2 - R+ //Orphan process
+   --
+    |<== systemD (Parent PID:1) //PPID
+
+------------------------------------------------------------------------
+ fd=fork()
+     ----
+
+fork()
+fork()
+--------- 2 pow of n(n=2)
+
+----------------------
+fork();
+printf("Hello\n"); # getpid() getppid()
+----------------------
+P1 -Wait
+|
+P2 -R+  ---Exit ==>ExitSignal //blocked  - Zombie
+--            
+----------------------------------------------------------------------------------
+P1 - R+ Address:0x1111
+|
+P2 - R+ Address:0x3456
+
+COW - same address
+
+ctrl+c - Exit signal
+ctrl+z - Stop signal - stopped - resume ..
+-------
+ |->signals
+
+signal(); //systemcall
+
+signal(SIGNAME,Handler);
+		|
+		int Handler(int sigNo){
+			Action
+		}
+
+ctrl+C 
+
+signal(SIGINT,fx);
+
+int fx(int signo){
+	....
+	....
+	printf("%d\n",signo);
+}
+kill -l
+SignalNumber)SIGNALNAME
+
+2)SIGINT
+..
+9)SIGKILL   kill -9 <PID>
+
+
+ 
+
+
+
+
