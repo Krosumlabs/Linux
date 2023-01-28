@@ -1,0 +1,224 @@
+systemctl -t service 
+
+root@host~]# ssh <remoteHost> {enter}
+	     ----------------//user process - TTY:pts/<port> 
+					    - parent is working shell
+		|
+		|
+		sshd.service //R+
+		------------
+			|->system process - TTY: ?
+					  - parent is systemD
+
+open a broswer -> https://www.google.com //user process
+		  ______________________
+			|->httpd.service -R+
+printer
+|-> ....
+|-> cupsd.service R+
+----------------------------------------------
+file: /home/userA/project/p1.c 
+      /home/userA/project/p1
+--------------------------------
+#include<stdio.h>
+
+int main(){
+	while(1){
+		system("uptime >>/var/log/LB.log");
+		sleep(5);
+	}
+	return 0;
+}
+----------------------------------
+To create own service file (or) Convert user process -> system process
+-----------------------------------------------------------------------
+step 1: create a unit file (or) service file - /etc/systemd/system/filename.service 
+	(ex: /etc/systemd/system/ab.service)
+
+step 2:  [Unit]
+	 Description=<Own description>
+	 [Service]
+	 ExecStart=<map your object file (or) executable file>
+	 [Install]
+	 WantedBy=multi-user.target
+
+step 3: reload a daemon => systemctl daemon-reload
+|
+step 4: To enable a daemon =>systemctl enable filename.service
+				       ------
+step 5: To start a daemon => systemctl start filename.service
+step 6: systemctl status filename.service
+----------------------------------------------------------------------------
+IPC
+----
+  ->unnamed pipe 
+  ->named pipe 
+  |
+  ->message queue
+  ->shared memory
+  ->semaphore 
+  -------------------//system V IPC
+
+P1  -> 0x1234
+|			
+P2  -> 0x3456
+
+unnamed pipe |			pipe()
+commandA | commandB | command C
+--------   ---------- ----------
+  |	      |   ^ |   | ^
+  o/p	      i/p | |___| |
+  |-----------|      ->-  o/p
+	
+  	 
+named pipe (or) FIFO - file 
+-----------------------------
+mkfifo  <filename>
+	 --------
+	   |->pipe file
+file <filename> 
+ls -l <filename>
+p<permission> ....
+	
+
+Process = Data + Address
+Thread  = Data 
+
+  [ ] 
+c=1
+	[t1]
+c--
+c=0	[t1]
+
+	[ ]
+	 |_
+c++
+c=1	[ ]
+c--
+c=0,1
+  ---
+   |->mutex
+
+ P1 - (PID:101 - PAddress:0x1234)
+ |
+ |_ t1 t2 t3 ..tn 
+    -------------//
+
+
+ P1 -----IPC---- P2
+ |		|
+ (  t1 t2 t3 t5
+      t6        )
+   - mutex
+
+----------------------------------------------------------------
+P1 | P2
+
+->fork() - process creation
+|
+-> pipe() - | 
+|
+-> read()  write()
+    |
+   read(FD,...,...) write(FD,....,.....)
+   	
+mkfifo chat //commandline 
+----------
+  |->mknod(<filename>,S_IFIFO,0) //systemcall 
+-----------------------------------------------------
+	 [ create a segment ]
+   - attach		  - deattach
+
+sys/shm.h
+key=ftok('/','a');
+shmid=shmget(key,MAXSIZE,IPC_CREAT|0666)
+if(shmid == -1){
+	perror("shmerror");
+	exit(1);
+}
+shat(shmid,...) // attachment  <------->
+
+
+-----------
+file: send.c
+-------------
+cat send.c
+#include "ab.h"
+#define MAXSIZE 27
+
+void die(char *s)
+{
+ perror(s);
+ exit(1);
+}
+int main()
+{
+  char c;
+  int shmid;
+  key_t key;
+  char *shm,*s;
+  key=5678;
+
+ shmid=shmget(key,MAXSIZE,IPC_CREAT|0666)
+ if((shm=shmat(shmid,NULL,0))==(char *)-1)
+ die("shmat");
+ s=shm;
+ for(c='a';c<='z';c++)
+ *s++=c;
+ while(*shm !='*')
+ sleep(1);
+ exit(0);
+}
+----------------------------------------------------------------------------------
+Process = Data + Address
+Thread = Data(flow of data) 
+
+P1 - PID:101 - getpid()
+| - fork()
+P2 - PID:102 - getpid()
+     PPID:101 - getppid()
+
+
+P1 - Wait    ---<-------
+|		       |  ^		T1 - R+
+P2 - R+  ----- Exit ->--  |		|
+					T2 - R+
+					-----------//there is no waiting
+P1 -> task_t  -> [ <pid> <padd>
+		   <.....>  ] //2KB --> /proc/<PID>/
+|
+P2 -> task_t  -> [      ]//2KB  --> /proc/<PID>/
+
+	Vs
+	T1 ...Tn  - 2KB //....
+
+
+   [t1]
+    - lock()
+    - unlock()
+  t2 t3 t4... tn // Conditional variable + mutex
+		    --------------------
+			- broadcast message 
+			- wait/signal
+----------------------------------------------------------------------------------
+Kernel params - while os running time - do some change in kernel params
+(increse shm limit;)
+
+sysctl -w KernelParam.Attr=Value (or)  echo Value >/proc/sys/kernel/params
+--------------------------------                   ------------------------
+	|						|
+	|---------------affect the running kernel ------|
+					  immediately
+/etc/sysctl.conf 
+.. update
+reboot is required 
+--------------------------------------------------------------------------------
+ /proc/ 			Vs		/etc/
+ |						|
+ proc						ext4,xfs
+ |						|
+ CPU,RAM					HD
+ ----------------------------------------------------------------------------------
+ Email: abpalanikarthik@gmail.com 
+-----------------------------------------------------------------------------------
+             
